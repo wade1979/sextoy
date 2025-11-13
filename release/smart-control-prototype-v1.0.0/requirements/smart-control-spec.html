@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Smart Control V0.1 需求规格说明书</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Inter", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        line-height: 1.6;
+        --primary: #6366f1;
+        --accent: #f97316;
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --text-muted: #475569;
+      }
+
+      body {
+        margin: 0 auto;
+        padding: 40px 48px 80px;
+        max-width: 1100px;
+        background: var(--bg);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        color: #111827;
+        margin-top: 2.4em;
+      }
+
+      h1 {
+        font-size: 2.6em;
+        margin-bottom: 0.2em;
+      }
+
+      h2 {
+        border-left: 4px solid var(--primary);
+        padding-left: 12px;
+      }
+
+      h3 {
+        color: var(--primary);
+      }
+
+      .meta,
+      .meta dt,
+      .meta dd {
+        margin: 0;
+        padding: 0;
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 12px 24px;
+        margin: 32px 0 48px;
+        padding: 24px 28px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 10px 32px rgba(15, 23, 42, 0.08);
+      }
+
+      section {
+        margin-top: 3em;
+        background: var(--card);
+        padding: 28px 32px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      }
+
+      p {
+        color: #1f2937;
+        margin: 1em 0;
+      }
+
+      ul,
+      ol {
+        padding-left: 1.5em;
+        color: #1f2937;
+      }
+
+      .toc {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(249, 115, 22, 0.08));
+        border: 1px solid rgba(99, 102, 241, 0.12);
+      }
+
+      .toc ul {
+        columns: 2;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .toc li {
+        padding: 6px 0;
+        font-size: 15px;
+      }
+
+      .toc a {
+        color: var(--primary);
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        text-decoration: underline;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 24px 0;
+        font-size: 15px;
+      }
+
+      th,
+      td {
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      th {
+        background: rgba(99, 102, 241, 0.08);
+        color: #1f2937;
+        text-align: left;
+      }
+
+      .figure {
+        background: rgba(99, 102, 241, 0.05);
+        border: 1px dashed rgba(99, 102, 241, 0.2);
+        border-radius: 16px;
+        padding: 24px;
+        margin: 24px 0;
+      }
+
+      .figure h4 {
+        margin-top: 0;
+      }
+
+      .diagram {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        margin-top: 16px;
+      }
+
+      .diagram .node {
+        padding: 18px;
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        border-radius: 14px;
+        background: #fff;
+        text-align: center;
+        color: #111827;
+        box-shadow: inset 0 0 0 2px rgba(99, 102, 241, 0.08);
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--primary);
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        margin-right: 8px;
+      }
+
+      .tech-note {
+        background: rgba(99, 102, 241, 0.15);
+        border-left: 4px dashed #4338ca;
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin: 28px 0;
+        color: #1f2937;
+      }
+
+      .tech-note h4 {
+        margin-top: 0;
+        color: #312e81;
+      }
+
+      .callout {
+        border-left: 4px solid var(--accent);
+        background: rgba(249, 115, 22, 0.08);
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin: 24px 0;
+        color: #7c2d12;
+      }
+
+      footer {
+        margin-top: 64px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      code {
+        background: rgba(15, 23, 42, 0.08);
+        border-radius: 6px;
+        padding: 2px 6px;
+        font-size: 0.92em;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 24px 20px 60px;
+        }
+
+        section {
+          padding: 24px;
+        }
+
+        .meta {
+          grid-template-columns: 1fr;
+        }
+
+        .toc ul {
+          columns: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="callout" style="background: rgba(249,115,22,0.15); border-left-color: #dc2626; color: #7c2d12;">
+        <strong>说明：</strong> 本需求规格文档由 AI 助手生成，若与飞书在线文档存在差异，以飞书原文为准：<code>https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf</code>。
+      </div>
+      <h1>Smart Control V0.1 需求规格说明书</h1>
+      <p>版本：V0.1（原型验证阶段）</p>
+      <dl class="meta">
+        <dt>对应文档</dt>
+        <dd><code>https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf</code>（飞书导出）</dd>
+        <dt>原型资源</dt>
+        <dd><code>web-prototype/</code> 前端原型</dd>
+        <dt>原型包</dt>
+        <dd><code>requirements/smart-control-prototype-v1.0.0.zip</code></dd>
+        <dt>最近更新</dt>
+        <dd>2025-11-09（同步飞书“产品PRDV0.1”最新版本）</dd>
+        <dt>编写人</dt>
+        <dd>GPT-5 Codex（根据原型与需求文档整理）</dd>
+      </dl>
+    </header>
+
+    <section id="toc" class="toc">
+      <h2>目录</h2>
+      <ul>
+        <li><a href="#introduction">1. 引言</a></li>
+        <li><a href="#terminology">2. 名词与术语</a></li>
+        <li><a href="#scope">3. 范围与假设</a></li>
+        <li><a href="#overview">4. 系统总体概览</a></li>
+        <li><a href="#hardware">5. 硬件需求</a></li>
+        <li><a href="#software">6. 软件功能需求</a></li>
+        <li><a href="#workflows">7. 关键业务流程</a></li>
+        <li><a href="#non-functional">8. 非功能性需求</a></li>
+        <li><a href="#algorithms">9. 算法与内容生成</a></li>
+        <li><a href="#data-safety">10. 数据、安全与合规</a></li>
+        <li><a href="#roadmap">11. 版本规划与风险</a></li>
+        <li><a href="#references">12. 参考资料</a></li>
+      </ul>
+      <h3>4.3 页面结构与导航</h3>
+      <ul>
+        <li>首页概览：以卡片形式展示“设备连接”“AI 模式配置”“智能模式启动”“AI 偏好学习”等入口。</li>
+        <li>底部导航：提供首页、自由模式、AI 模式、AI 学习、快速进入等主要功能的快捷切换。</li>
+        <li>流程指引：覆盖首次 Wi-Fi 配置、AI 角色场景浏览、智能模式（自由/AI）启动等关键路径，需在界面中提供分步提示与状态反馈。</li>
+      </ul>
+    </section>
+
+    <section id="introduction">
+      <h2>1. 引言</h2>
+      <h3>1.1 背景</h3>
+      <p>
+        项目旨在打造一套面向北美市场的智能男性理疗/愉悦设备的控制系统。基于
+        ESP32 硬件与云端服务，通过浏览器即可完成设备联网、模式配置、实时控制以及 AI
+        互动体验。当前原型处于 V0.1 验证阶段，需实现业务闭环并验证主要人机交互流程。
+      </p>
+      <h3>1.2 目标</h3>
+      <ul>
+        <li>在线控制：通过云端实现伸缩、旋转、夹吸等实时参数调整。</li>
+        <li>
+          Web 交互：提供移动优先的浏览器界面，覆盖 WiFi 配置、自由模式、AI
+          模式等核心流程。
+        </li>
+        <li>
+          算法支持：基于角色与场景设定输出节奏规划与语音播报，为后续智能化升级打下基础。
+        </li>
+      </ul>
+      <h3>1.3 文档说明</h3>
+      <p>
+        本文档整合飞书需求（<code>https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf</code>）与前端原型
+        (<code>web-prototype/</code>) 及最新的打包原型
+        (<code>smart-control-prototype-v1.0.0.zip</code>)，补充数据结构、接口与非功能性要求，以 HTML 形式供产品、设计、研发协同参考。
+      </p>
+    </section>
+
+    <section id="terminology">
+      <h2>2. 名词与术语</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>术语</th>
+            <th>定义</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>体验</td>
+            <td>一次完整的交互过程，从启动到收尾，由多个运动任务与实时互动组成。</td>
+            <td>来源：飞书需求，引用章节“名词定义”。</td>
+          </tr>
+          <tr>
+            <td>运动任务</td>
+            <td>设备执行的动作序列，可为预编排任务（20s 动作段）或即时任务（加速、减速等）。</td>
+            <td>区分批量任务与实时指令。</td>
+          </tr>
+          <tr>
+            <td>实时交互</td>
+            <td>用户与 AI 通过语音、按钮、视觉反馈的实时通信，产生即时任务或情绪反馈。</td>
+            <td>依赖云端解析。</td>
+          </tr>
+          <tr>
+            <td>自由模式</td>
+            <td>用户直接控制设备参数，无自动节奏编排。</td>
+            <td>对应原型 `freeMode` 页面。</td>
+          </tr>
+          <tr>
+            <td>AI 模式</td>
+            <td>根据角色与场景自动编排节奏，并根据实时指令动态调整。</td>
+            <td>对应原型 `aiMode` 页面。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="scope">
+      <h2>3. 范围与假设</h2>
+      <h3>3.1 范围</h3>
+      <ul>
+        <li>
+          软硬件联调：覆盖从设备配对、云端通信、前端控制到语音反馈的闭环。
+        </li>
+        <li>AI 人设：V0.1 阶段采用硬编码人物与场景，语音播报使用固定模板。</li>
+        <li>PWA 支持：提供基础离线能力与安装入口。</li>
+        <li>交互入口仅限 Web 浏览器，需要获取麦克风与扬声器权限。</li>
+      </ul>
+      <h3>3.2 非范围</h3>
+      <ul>
+        <li>AI 偏好学习（原型保留入口，功能暂不实现）。</li>
+        <li>远程伴侣共享控制、用户账号体系等高级功能。</li>
+        <li>复杂内容（视频渲染、真人语音克隆动态生成）不在 V0.1 内。</li>
+      </ul>
+      <h3>3.3 关键假设</h3>
+      <ul>
+        <li>设备具备唯一序列号并可生成 token 用于配对。</li>
+        <li>前端通过 <code>http://{配对域名}/{token}</code> 形式连接设备 SoftAP。</li>
+        <li>云端可与 MQTT 网关稳定通信，延迟满足实时控制需求。</li>
+        <li>用户终端浏览器具备麦克风、扬声器权限。</li>
+      </ul>
+      <h3>3.4 总体要求</h3>
+      <ul>
+        <li>交互入口通过 Web 浏览器提供，需兼容手机与 PC，并在首次使用时申请麦克风/音箱权限。</li>
+        <li>与设备的连接需通过 URL + token 方式完成配对。</li>
+        <li>除 Wi-Fi 配置外，其余功能需在设备成功联网后方可使用。</li>
+      </ul>
+    </section>
+
+    <section id="overview">
+      <h2>4. 系统总体概览</h2>
+      <div class="figure">
+        <h4>图 4-1 系统高层结构</h4>
+        <div class="diagram">
+          <div class="node">
+            <strong>用户终端</strong>
+            <br />移动/PC 浏览器<br /><span class="chip">PWA</span>
+          </div>
+          <div class="node">
+            <strong>Web 前端</strong>
+            <br />界面逻辑、语音交互、波形可视化<br /><code>web-prototype</code>
+          </div>
+          <div class="node">
+            <strong>云端服务</strong>
+            <br />MQTT 网关、任务编排、语音/内容服务
+          </div>
+          <div class="node">
+            <strong>智能设备</strong>
+            <br />ESP32 控制板、驱动模块、传感器<br /><span class="chip">Wi-Fi</span>
+          </div>
+        </div>
+        <p>
+          交互流程：浏览器经 HTTPS 接入云端 → 通过 token 配对设备 → MQTT
+          通道传输控制指令与状态 → 设备执行动作并回传进度 → AI 服务根据上下文生成下一任务与语音反馈。
+        </p>
+      <p>
+        资源说明：团队可通过飞书文档附带的 <code>smart-control-prototype-v1.0.0.zip</code> 获取线框稿及演示数据，与
+        <code>web-prototype/</code> 目录保持一致。
+      </p>
+      </div>
+      <h3>4.1 通信协议概览</h3>
+      <ul>
+        <li>下行：<code>device/control/{deviceId}</code>（伸缩、旋转、夹吸、语音播报）。</li>
+        <li>上行：<code>device/status/{deviceId}</code>、<code>device/heartbeat/{deviceId}</code>。</li>
+        <li>WiFi 配置阶段通过 SoftAP + 轻量级 HTTP Server 完成。</li>
+      </ul>
+      <h3>4.2 角色与场景矩阵</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>角色</th>
+            <th>个性特征</th>
+            <th>场景组合（示例）</th>
+            <th>视觉/语音资源</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>护理师 (nurse)</td>
+            <td>温柔细致、关怀导向</td>
+            <td>温柔照护、私密唤醒</td>
+            <td>背景图 <code>resource/background_nurse.png</code></td>
+          </tr>
+          <tr>
+            <td>御姐 (queen)</td>
+            <td>主导、挑逗、节奏强</td>
+            <td>主控调戏、节奏训练</td>
+            <td>背景图 <code>resource/background_queen.png</code></td>
+          </tr>
+          <tr>
+            <td>女友 (girlfriend)</td>
+            <td>亲密、体贴、互动性强</td>
+            <td>休息放松、温柔照护</td>
+            <td>背景图 <code>resource/background_girlfriend.png</code></td>
+          </tr>
+          <tr>
+            <td>教练 (coach)</td>
+            <td>节奏管理、目标导向</td>
+            <td>节奏训练、主控调戏</td>
+            <td>背景图 <code>resource/background_coach.png</code></td>
+          </tr>
+          <tr>
+            <td>白领 (ol)</td>
+            <td>知性、成熟、轻声引导</td>
+            <td>休息放松、私密唤醒</td>
+            <td>背景图 <code>resource/background_ol.png</code></td>
+          </tr>
+          <tr>
+            <td>女优分身（合作授权）</td>
+            <td>依真实人物定制，语音/形象由机构提供</td>
+            <td>依据合作内容配置 5 × N 场景</td>
+            <td>资源通过结构化文件载入（V0.1 硬编码）</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="hardware">
+      <h2>5. 硬件需求</h2>
+      <h3>5.1 基础能力</h3>
+      <ul>
+        <li>核心功能：支持全行程伸缩与旋转组合，实现多层次刺激。</li>
+        <li>材质：亲肤硅胶，拟真人体通道设计，兼顾安全与体验。</li>
+        <li>连接性：内置 Wi-Fi 模块，支持 SoftAP 及联网模式。</li>
+        <li>供电：内置锂电池，面向长时体验设计。</li>
+        <li>主控：ESP32（V0.1 可通过飞线改造现有主控）。</li>
+        <li>噪声：设备运行噪声需控制在 60 分贝以下。</li>
+      </ul>
+      <h3>5.2 功能要求对照</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>编号</th>
+            <th>功能</th>
+            <th>描述</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>H01</td>
+            <td>Wifi 连接与配对</td>
+            <td>
+              设备提供 SoftAP（长按伸缩模式键 5 秒进入），默认开放网络；用户手机接入后由硬件侧轻量级 HTTP Server 弹出配置页，填写可联网 AP 与密码。设备序列号生成 token 供浏览器配对。
+            </td>
+            <td>Token 暂不设有效期；配对 URL 采用 <code>http://{配对域名}/{token}</code>；配网流程大部分发生在局域网。</td>
+          </tr>
+          <tr>
+            <td>H02</td>
+            <td>在线控制模式</td>
+            <td>
+              云端实时下发自由模式指令；AI 模式需支持预编排任务队列（当缓存耗尽需重复最近节奏包）与即时指令队列，并保证运行时间轴对齐。
+            </td>
+            <td>MQTT 主题需覆盖任务、状态、心跳；设备端需支持任务缓存、插队和中断，并在收到即时指令后对当前/后续任务做出调度调整。</td>
+          </tr>
+          <tr>
+            <td>H03</td>
+            <td>离线控制模式</td>
+            <td>
+              兼容原生自动模式；在线控制时硬件侧参数按钮可锁定，避免状态错位。
+            </td>
+            <td>离线与在线模式互斥，避免同步复杂度。</td>
+          </tr>
+          <tr>
+            <td>H04</td>
+            <td>OTA 与维护</td>
+            <td>
+              支持在线固件升级（依赖云服务厂商能力）；具体入口待定，遵循 MVP 原则。
+            </td>
+            <td>需记录固件版本，确保多版本兼容。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>提示：</strong> V0.1 阶段重点在于在线控制闭环。若 OTA 功能延期，实现需同步更新策略与界面入口。
+      </div>
+      <div class="callout">
+        <strong>硬件阶段说明：</strong> 正式版硬件预计于 11 月底确定，V0.1 期间可通过飞线方式改造现有主控；正式型号确定后，在不改动结构件的前提下设计替换 PCB。
+      </div>
+    </section>
+
+    <section id="software">
+      <h2>6. 软件功能需求</h2>
+      <h3>6.1 功能模块概述</h3>
+      <p>依据飞书“功能详细描述”，V0.1 前端需覆盖以下体验模块：</p>
+      <ul>
+        <li>Wi-Fi 配置与联网：指导用户通过 SoftAP 完成联网，成功后自动回连家庭网络。</li>
+        <li>AI 角色/女优浏览：展示 5 个虚拟角色及合作女优分身的场景设定、语音风格与体验亮点。</li>
+        <li>自由模式：提供伸缩/旋转/夹吸等实时调节能力，并支持固定语音指令与语音反馈。</li>
+        <li>AI 模式：引导用户完成角色→场景→启动的三步流程，体验过程中需响应“喜欢、跳过、快点、慢点、用力、轻点”等即时指令。</li>
+        <li>AI 偏好学习：页面预留入口，说明功能规划与数据使用原则（V0.1 暂不实现）。</li>
+        <li>性能与运维信息：在适当位置展示当前接入限制、兼容性说明及故障排查指引。</li>
+      </ul>
+      <div class="tech-note">
+        <h4>当前原型实现（供参考）</h4>
+        <ul>
+          <li>使用单页结构（<code>index.html</code>）结合 <code>SmartControlApp.switchScreen()</code> 控制各模块显示。</li>
+          <li>样式采用移动优先的 CSS Grid/Flex；语音交互由 <code>voice.js</code> 管理，波形动画由 <code>waveform.js</code> 驱动。</li>
+        </ul>
+      </div>
+      <h3>6.2 通信与控制要求</h3>
+      <ul>
+        <li>自由模式需支持云端实时下发伸缩、旋转、夹吸等指令，设备即时响应。</li>
+        <li>AI 模式包含预编排任务与即时任务两类，下发过程中需维护时间轴一致性，并允许指令插队。</li>
+        <li>设备需持续上报状态、心跳与当前任务执行进度，供前端和云端同步展示。</li>
+      </ul>
+      <div class="tech-note">
+        <h4>通信协议示例</h4>
+        <p><code>mqtt.js</code> 当前实现了连接、订阅、命令发送与心跳机制。示例消息结构如下：</p>
+        <pre><code>{
+  "timestamp": 1731139200000,
+  "command": {
+    "type": "strokeSpeed",
+    "parameters": { "value": 75 }
+  }
+}</code></pre>
+      </div>
+      <h3>6.3 功能清单对照</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>编号</th>
+            <th>功能名称</th>
+            <th>关键交互</th>
+            <th>原型链接</th>
+            <th>来源</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>C01</td>
+            <td>WiFi 配置</td>
+            <td>云端指引 → 长按硬件键进入 SoftAP → 手机接入设备热点 → 本地配置页填写家庭 WiFi → 结果确认</td>
+            <td><code>index.html#wifiSetup</code></td>
+            <td>
+              <a href="https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf" target="_blank">
+                飞书文档·硬件基本功能 H01：Wi-Fi 连接与配对
+              </a>
+              + 原型页面
+            </td>
+          </tr>
+          <tr>
+            <td>C02</td>
+            <td>AI 角色/女优浏览</td>
+            <td>角色/女优列表 → 查看个性设定、语音风格、授权来源 → 场景组合演示 → 返回主页</td>
+            <td><code>index.html#characterBrowse</code></td>
+            <td>
+              <a href="https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf" target="_blank">
+                飞书文档·功能描述 C02：AI 角色场景浏览
+              </a>
+              + <code>characters.js</code>
+            </td>
+          </tr>
+          <tr>
+            <td>C03</td>
+            <td>自由模式</td>
+            <td>进入控制台 → 调整伸缩/旋转/夹吸滑杆 → 触发语音指令 → 波形同步更新 → 停止</td>
+            <td><code>index.html#freeMode</code></td>
+            <td>
+              <a href="https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf" target="_blank">
+                飞书文档·功能描述 C03：自由模式
+              </a>
+              + <code>app.js</code> 控制逻辑
+            </td>
+          </tr>
+          <tr>
+            <td>C04</td>
+            <td>AI 模式</td>
+            <td>角色选择 → 场景选择 → 自动节奏运行 → 用户反馈（喜欢/快/慢等） → 语音与视觉反馈 → 结束总结</td>
+            <td><code>index.html#aiMode</code></td>
+            <td>
+              <a href="https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf" target="_blank">
+                飞书文档·功能描述 C04：AI 模式
+              </a>
+              + <code>voice.js</code>、<code>mqtt.js</code>
+            </td>
+          </tr>
+          <tr>
+            <td>C05</td>
+            <td>AI 偏好学习</td>
+            <td>展示学习简介与数据权益提示（V0.1 不实现）</td>
+            <td><code>index.html#aiPreference</code></td>
+            <td>
+              <a href="https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf" target="_blank">
+                飞书文档·功能描述 C05：AI 偏好学习
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td>C06</td>
+            <td>性能与运维能力</td>
+            <td>展示最大接入量指标、云部署清单、固件兼容说明</td>
+            <td><code>index.html#home</code>（指标卡片预留）</td>
+            <td>
+              <a href="https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf" target="_blank">
+                飞书文档·功能描述 C06：性能与可维护性
+              </a>
+              + 架构要求
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>6.4 后台服务接口与约束</h3>
+      <p>配网、任务编排与状态监控需形成闭环；偏好学习等后续能力应保持与核心链路解耦，便于迭代。</p>
+      <ul>
+        <li>自由模式仅支持本地用户使用，暂不开放远程共享控制。</li>
+        <li>AI 角色与女优分身的设定通过结构化文件维护，V0.1 不提供在线编辑工具。</li>
+        <li>后台需预留接口以支持 OTA、数据统计等后续能力，但可视化入口可待后续版本落实。</li>
+      </ul>
+      <div class="tech-note">
+        <h4>原型接口示例</h4>
+        <ul>
+          <li><strong>设备配对</strong>：<code>POST /pairing/{token}</code> → 返回 <code>deviceId</code> 与临时凭证。</li>
+          <li><strong>Wi-Fi 配置反馈</strong>：SoftAP 端点 <code>/configure</code> 接收 SSID/密码，并返回配置结果。</li>
+          <li><strong>任务下发</strong>：通过 MQTT 或 HTTPS 长轮询传输任务包（详见第 9 章节奏协议）。</li>
+          <li><strong>状态回传</strong>：设备周期性上报运行阶段、错误码与心跳。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="workflows">
+      <h2>7. 关键业务流程</h2>
+      <h3>7.1 流程概览</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>流程</th>
+            <th>步骤</th>
+            <th>用户视角</th>
+            <th>系统事件</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>设备首次联网</td>
+            <td>云端指南 → 长按硬件键 5 秒进入 SoftAP → WiFi 扫描 → 填写密码 → 成功提示</td>
+            <td>用户跟随步骤完成配置</td>
+            <td>生成 token → 记录 SSID → 测试连接 → 回报结果</td>
+          </tr>
+          <tr>
+            <td>AI 角色浏览</td>
+            <td>角色列表 → 场景详情 → 返回</td>
+            <td>了解不同角色人格与语音风格</td>
+            <td>加载角色数据 → 背景图渲染 → 提供语音示例</td>
+          </tr>
+          <tr>
+            <td>自由模式控制</td>
+            <td>进入控制台 → 调整参数 → 可选语音指令 → 停止</td>
+            <td>随时调整设备反应</td>
+            <td>发送实时指令 → 更新波形 → 播放语音反馈</td>
+          </tr>
+          <tr>
+            <td>AI 模式体验</td>
+            <td>选择角色 → 选择场景 → 启动 → 即时反馈按钮</td>
+            <td>获得沉浸式互动体验</td>
+            <td>任务队列下发 → 实时指令调节 → 语音/视觉响应</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>7.2 交互细节（示例：AI 模式）</h3>
+      <ol>
+        <li>用户选择角色与场景，触发 <code>startAIMode()</code>。</li>
+        <li>前端向云端请求首批节奏任务，缓存到设备。</li>
+        <li>云端根据阶段下发语音播报（start/progress/climax/end）。</li>
+        <li>用户反馈（喜欢、快点等）即时映射为 <code>sendVoiceFeedback()</code>。</li>
+        <li>设备回报执行状态，前端更新进度条与文案。</li>
+      </ol>
+      <div class="callout">
+        <strong>局域网提示：</strong> WiFi 配置的 Step 2-3 发生在用户终端与设备 SoftAP 之间，需在 UI 上明确提示用户切换网络并保持浏览器页面不关闭。
+      </div>
+    </section>
+
+    <section id="non-functional">
+      <h2>8. 非功能性需求</h2>
+      <h3>8.1 性能</h3>
+      <ul>
+        <li>支持设备总量 &lt; 10,000，在线并发 &lt; 100（飞书 C06）。</li>
+        <li>MQTT 往返延迟建议 &lt; 300ms，确保实时指令响应。</li>
+        <li>语音播报从触发到播放 &lt; 1s。</li>
+      </ul>
+      <h3>8.2 可用性</h3>
+      <ul>
+        <li>界面适配 iOS Safari 13+、Android Chrome 80+、桌面浏览器。</li>
+        <li>滑动条、按钮需满足触控目标 ≥ 48px。</li>
+        <li>WiFi 配置流程需提供错误提示与重试路径。</li>
+      </ul>
+      <h3>8.3 可维护性</h3>
+      <ul>
+        <li>云端配置支持多云部署（AWS / 阿里云 / Azure）。</li>
+        <li>设备需上报固件版本，便于兼容适配。</li>
+        <li>前端代码模块化，便于替换角色/场景资源。</li>
+      </ul>
+    </section>
+
+    <section id="algorithms">
+      <h2>9. 算法与内容生成</h2>
+      <h3>9.1 V0.1 实现</h3>
+      <ul>
+        <li>黑盒模式：采用固定节奏模板驱动设备。</li>
+        <li>输入：角色、场景、任务阶段、用户即时指令。</li>
+        <li>输出：运动任务序列（速度、幅度、旋转、持续时间）+ 语音播报文本。</li>
+      </ul>
+      <h3>9.2 V0.2 展望</h3>
+      <p>
+        引入动态拟人化体验生成：结合历史偏好、上下文、实时反馈，实现多模态输出（运动、语音、视觉）。
+      </p>
+      <h3>9.3 数据来源与模型</h3>
+      <ul>
+        <li>真人演示数据：15 种手法、25 段体验音视频。</li>
+        <li>语音克隆：基于合作机构授权素材训练。</li>
+        <li>视觉输出：需评估分级（目标 &lt; A2）与合规成本。</li>
+        <li>数据包链接：<code>https://gofile.me/6Z049/3PR5exZzq</code>（飞书原文引用，用于算法训练验证）。</li>
+      </ul>
+      <h3>9.4 任务协议建议</h3>
+      <p>AI 模式需支持任务队列与中断机制：预编排任务按顺序执行，实时指令到达时需调整当前及后续队列。</p>
+      <div class="tech-note">
+        <h4>原型任务包示例</h4>
+        <pre><code>{
+  "meta": {
+    "character": "queen",
+    "scenario": "tease",
+    "phase": "progress"
+  },
+  "tasks": [
+    { "type": "stroke", "speed": 72, "depth": 85, "duration": 12000 },
+    { "type": "rotation", "speed": 65, "direction": "cw", "duration": 8000 }
+  ],
+  "voice": {
+    "action": "play",
+    "templateId": "queen_progress_02"
+  }
+}</code></pre>
+        <p>示例来自当前原型，实际实现可根据设备固件或算法输出进行调整。</p>
+      </div>
+    </section>
+
+    <section id="data-safety">
+      <h2>10. 数据、安全与合规</h2>
+      <ul>
+        <li>通信全程 HTTPS / WSS，MQTT 支持 TLS。</li>
+        <li>设备 token 需与序列号绑定，防止伪造。</li>
+        <li>用户隐私：暂不收集个人身份信息；若后续引入账号系统需遵循 GDPR/CCPA。</li>
+        <li>内容分级：AI 语音与视觉输出严格控制在 A2 以下标准。</li>
+        <li>日志：云端需记录关键事件用于调试与质量分析。</li>
+        <li>运维：依赖云服务厂商物联网关/消息网关，无单独管理后台。</li>
+      </ul>
+    </section>
+
+    <section id="roadmap">
+      <h2>11. 版本规划与风险</h2>
+      <h3>11.1 功能里程碑</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>版本</th>
+            <th>目标</th>
+            <th>关键交付</th>
+            <th>风险与对策</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>V0.1</td>
+            <td>原型验证闭环</td>
+            <td>WiFi 配置、自由模式、AI 模式（固定模板）、语音播报</td>
+            <td>硬件驱动调试 → 建立每日联调例会；MQTT 稳定性 → 引入心跳与重连策略</td>
+          </tr>
+          <tr>
+            <td>V0.2</td>
+            <td>智能化升级</td>
+            <td>偏好学习、动态节奏生成、多模态内容输出</td>
+            <td>数据安全 → 制定匿名化方案；算法效果 → 搭建小规模用户实验</td>
+          </tr>
+          <tr>
+            <td>V1.0</td>
+            <td>量产准备</td>
+            <td>多云部署、OTA 正式上线、后台监控</td>
+            <td>运维成本 → 自动化部署；合规审核 → 提前启动认证</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>11.2 待确认事项</h3>
+      <ul>
+        <li>OTA 入口位置（前端或硬件本地）。</li>
+        <li>真实人物 AI 分身授权流程与成本。</li>
+        <li>语音生成服务（自建 vs 第三方 API）。</li>
+      </ul>
+    </section>
+
+    <section id="references">
+      <h2>12. 参考资料</h2>
+      <ul>
+        <li>飞书在线文档：<code>https://y0rdzqd3grd.feishu.cn/wiki/V42iw5QfLiIZnmkY9Q1c0983nNf</code></li>
+        <li>原型发布包：<code>smart-control-prototype-v1.0.0.zip</code></li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>本规格文档用于 V0.1 阶段团队协作，后续迭代请更新版本与参考资料。</p>
+    </footer>
+  </body>
+</html>
+
+
+

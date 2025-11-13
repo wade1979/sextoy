@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频标注采集工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .timer-display {
+            background: #f8f9fa;
+            padding: 40px;
+            text-align: center;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .timer-value {
+            font-size: 72px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+        }
+
+        .timer-status {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        .timer-status.running {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .timer-status.paused {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .timer-status.stopped {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-start {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-pause {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-stop {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-export {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-clear {
+            background: #6c757d;
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .annotation-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: 15px;
+            font-size: 16px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .preset-btn:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+            transform: scale(1.05);
+        }
+
+        .preset-btn:active {
+            transform: scale(0.98);
+            background: #667eea;
+            color: white;
+        }
+
+        .preset-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .custom-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .custom-input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .custom-input:focus {
+            border-color: #667eea;
+        }
+
+        .btn-add {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add:hover {
+            background: #5568d3;
+        }
+
+        .btn-add:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .annotations-list {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .annotation-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e9ecef;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .annotation-info {
+            flex: 1;
+        }
+
+        .annotation-time {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .annotation-label {
+            color: #333;
+            font-size: 16px;
+        }
+
+        .annotation-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+        .annotation-type.preset {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .annotation-type.custom {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .btn-delete {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .annotations-empty {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .annotations-stats {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .footer-actions {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            border-top: 2px solid #e9ecef;
+        }
+
+        /* 滚动条样式 */
+        .annotations-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .annotations-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .annotations-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .annotations-list::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .preset-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .timer-value {
+                font-size: 48px;
+            }
+
+            .control-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .preset-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: toastIn 0.3s ease;
+            z-index: 1000;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📹 视频标注采集工具</h1>
+            <p>实时拍摄过程中的观看者反馈标注记录</p>
+        </div>
+
+        <div class="timer-display">
+            <div class="timer-value" id="timerDisplay">00:00.000</div>
+            <div class="timer-status" id="timerStatus">准备就绪</div>
+            <div class="control-buttons">
+                <button class="btn btn-start" id="btnStart">▶ 开始</button>
+                <button class="btn btn-pause" id="btnPause" disabled>⏸ 暂停</button>
+                <button class="btn btn-stop" id="btnStop" disabled>⏹ 结束</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="annotation-panel">
+                <div class="panel-title">🎯 快速标注</div>
+                <div class="preset-buttons" id="presetButtons">
+                    <button class="preset-btn" data-label="快点" disabled>快点</button>
+                    <button class="preset-btn" data-label="慢点" disabled>慢点</button>
+                    <button class="preset-btn" data-label="轻点" disabled>轻点</button>
+                    <button class="preset-btn" data-label="重点" disabled>重点</button>
+                    <button class="preset-btn" data-label="舒适" disabled>舒适</button>
+                    <button class="preset-btn" data-label="难过" disabled>难过</button>
+                    <button class="preset-btn" data-label="紧张" disabled>紧张</button>
+                    <button class="preset-btn" data-label="兴奋" disabled>兴奋</button>
+                    <button class="preset-btn" data-label="平静" disabled>平静</button>
+                </div>
+
+                <div class="panel-title" style="margin-top: 30px;">✍️ 自定义标注</div>
+                <div class="custom-input-group">
+                    <input type="text" class="custom-input" id="customInput" placeholder="输入自定义标注内容..." disabled>
+                    <button class="btn-add" id="btnAddCustom" disabled>添加</button>
+                </div>
+
+                <div class="annotations-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalAnnotations">0</div>
+                        <div class="stat-label">总标注数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="presetCount">0</div>
+                        <div class="stat-label">预设标注</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="customCount">0</div>
+                        <div class="stat-label">自定义标注</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="annotation-panel">
+                <div class="panel-title">📝 标注列表</div>
+                <div class="annotations-list" id="annotationsList">
+                    <div class="annotations-empty">
+                        暂无标注，请开始录制后添加标注
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-actions">
+            <button class="btn btn-export" id="btnExport" disabled>💾 导出 JSON</button>
+            <button class="btn btn-clear" id="btnClear">🗑️ 清空数据</button>
+        </div>
+    </div>
+
+    <script>
+        // 应用状态
+        const appState = {
+            status: 'idle', // idle, running, paused, stopped
+            startTime: null,
+            pauseTime: null,
+            totalPausedDuration: 0,
+            currentTime: 0,
+            annotations: [],
+            animationFrame: null,
+            sessionId: null
+        };
+
+        // DOM 元素
+        const elements = {
+            timerDisplay: document.getElementById('timerDisplay'),
+            timerStatus: document.getElementById('timerStatus'),
+            btnStart: document.getElementById('btnStart'),
+            btnPause: document.getElementById('btnPause'),
+            btnStop: document.getElementById('btnStop'),
+            btnExport: document.getElementById('btnExport'),
+            btnClear: document.getElementById('btnClear'),
+            presetButtons: document.querySelectorAll('.preset-btn'),
+            customInput: document.getElementById('customInput'),
+            btnAddCustom: document.getElementById('btnAddCustom'),
+            annotationsList: document.getElementById('annotationsList'),
+            totalAnnotations: document.getElementById('totalAnnotations'),
+            presetCount: document.getElementById('presetCount'),
+            customCount: document.getElementById('customCount')
+        };
+
+        // 格式化时间
+        function formatTime(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const ms = Math.floor(milliseconds % 1000);
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+        }
+
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            if (appState.status === 'running') {
+                appState.currentTime = performance.now() - appState.startTime - appState.totalPausedDuration;
+                elements.timerDisplay.textContent = formatTime(appState.currentTime);
+                appState.animationFrame = requestAnimationFrame(updateTimerDisplay);
+            }
+        }
+
+        // 更新状态显示
+        function updateStatusDisplay() {
+            const statusElement = elements.timerStatus;
+            statusElement.className = 'timer-status';
+            
+            switch (appState.status) {
+                case 'idle':
+                    statusElement.textContent = '准备就绪';
+                    break;
+                case 'running':
+                    statusElement.textContent = '● 正在录制';
+                    statusElement.classList.add('running');
+                    break;
+                case 'paused':
+                    statusElement.textContent = '⏸ 已暂停';
+                    statusElement.classList.add('paused');
+                    break;
+                case 'stopped':
+                    statusElement.textContent = '⏹ 已结束';
+                    statusElement.classList.add('stopped');
+                    break;
+            }
+        }
+
+        // 更新按钮状态
+        function updateButtonStates() {
+            const isRunning = appState.status === 'running';
+            const isPaused = appState.status === 'paused';
+            const isStopped = appState.status === 'stopped';
+            const isIdle = appState.status === 'idle';
+
+            elements.btnStart.disabled = isRunning || isStopped;
+            elements.btnPause.disabled = isIdle || isStopped;
+            elements.btnStop.disabled = isIdle || isStopped;
+            elements.btnExport.disabled = appState.annotations.length === 0;
+
+            // 更新按钮文字
+            if (isPaused) {
+                elements.btnStart.textContent = '▶ 继续';
+            } else {
+                elements.btnStart.textContent = '▶ 开始';
+            }
+
+            // 标注按钮
+            const canAnnotate = isRunning;
+            elements.presetButtons.forEach(btn => {
+                btn.disabled = !canAnnotate;
+            });
+            elements.customInput.disabled = !canAnnotate;
+            elements.btnAddCustom.disabled = !canAnnotate;
+        }
+
+        // 开始/继续
+        elements.btnStart.addEventListener('click', () => {
+            if (appState.status === 'idle') {
+                // 全新开始
+                appState.sessionId = Date.now();
+                appState.startTime = performance.now();
+                appState.totalPausedDuration = 0;
+                appState.currentTime = 0;
+                appState.status = 'running';
+            } else if (appState.status === 'paused') {
+                // 从暂停继续
+                appState.totalPausedDuration += performance.now() - appState.pauseTime;
+                appState.status = 'running';
+            }
+            
+            updateStatusDisplay();
+            updateButtonStates();
+            updateTimerDisplay();
+            saveToLocalStorage();
+        });
+
+        // 暂停
+        elements.btnPause.addEventListener('click', () => {
+            if (appState.status === 'running') {
+                appState.pauseTime = performance.now();
+                appState.status = 'paused';
+                cancelAnimationFrame(appState.animationFrame);
+                updateStatusDisplay();
+                updateButtonStates();
+                saveToLocalStorage();
+            }
+        });
+
+        // 结束
+        elements.btnStop.addEventListener('click', () => {
+            if (appState.status === 'running' || appState.status === 'paused') {
+                if (appState.status === 'running') {
+                    appState.currentTime = performance.now() - appState.startTime - appState.totalPausedDuration;
+                    cancelAnimationFrame(appState.animationFrame);
+                }
+                appState.status = 'stopped';
+                updateStatusDisplay();
+                updateButtonStates();
+                saveToLocalStorage();
+                showToast('录制已结束，可以导出数据');
+            }
+        });
+
+        // 添加标注
+        function addAnnotation(label, type) {
+            if (appState.status !== 'running') return;
+
+            const annotation = {
+                id: Date.now() + Math.random(),
+                timestamp: appState.currentTime,
+                time_formatted: formatTime(appState.currentTime),
+                label: label,
+                type: type
+            };
+
+            appState.annotations.push(annotation);
+            renderAnnotations();
+            updateStats();
+            saveToLocalStorage();
+            showToast(`已添加标注: ${label}`);
+
+            // 清空自定义输入框
+            if (type === 'custom') {
+                elements.customInput.value = '';
+            }
+        }
+
+        // 预设按钮点击
+        elements.presetButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const label = btn.getAttribute('data-label');
+                addAnnotation(label, 'preset');
+            });
+        });
+
+        // 自定义标注
+        elements.btnAddCustom.addEventListener('click', () => {
+            const label = elements.customInput.value.trim();
+            if (label) {
+                addAnnotation(label, 'custom');
+            }
+        });
+
+        elements.customInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const label = elements.customInput.value.trim();
+                if (label) {
+                    addAnnotation(label, 'custom');
+                }
+            }
+        });
+
+        // 渲染标注列表
+        function renderAnnotations() {
+            if (appState.annotations.length === 0) {
+                elements.annotationsList.innerHTML = '<div class="annotations-empty">暂无标注，请开始录制后添加标注</div>';
+                return;
+            }
+
+            // 按时间排序
+            const sorted = [...appState.annotations].sort((a, b) => a.timestamp - b.timestamp);
+
+            elements.annotationsList.innerHTML = sorted.map(annotation => `
+                <div class="annotation-item" data-id="${annotation.id}">
+                    <div class="annotation-info">
+                        <div class="annotation-time">${annotation.time_formatted}</div>
+                        <div class="annotation-label">
+                            ${annotation.label}
+                            <span class="annotation-type ${annotation.type}">
+                                ${annotation.type === 'preset' ? '预设' : '自定义'}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteAnnotation(${annotation.id})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        // 删除标注
+        window.deleteAnnotation = function(id) {
+            appState.annotations = appState.annotations.filter(a => a.id !== id);
+            renderAnnotations();
+            updateStats();
+            saveToLocalStorage();
+            showToast('标注已删除');
+        };
+
+        // 更新统计
+        function updateStats() {
+            const total = appState.annotations.length;
+            const preset = appState.annotations.filter(a => a.type === 'preset').length;
+            const custom = appState.annotations.filter(a => a.type === 'custom').length;
+
+            elements.totalAnnotations.textContent = total;
+            elements.presetCount.textContent = preset;
+            elements.customCount.textContent = custom;
+        }
+
+        // 导出 JSON
+        elements.btnExport.addEventListener('click', () => {
+            const exportData = {
+                recording_name: `录制_${new Date(appState.sessionId).toLocaleString('zh-CN')}`,
+                total_duration: appState.currentTime / 1000,
+                total_duration_formatted: formatTime(appState.currentTime),
+                annotations: appState.annotations.map(a => ({
+                    timestamp: a.timestamp / 1000,
+                    time_formatted: a.time_formatted,
+                    label: a.label,
+                    type: a.type
+                })),
+                created_at: new Date().toISOString(),
+                session_id: appState.sessionId
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const now = new Date();
+            const filename = `annotations_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}.json`;
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showToast('数据已导出');
+        });
+
+        // 清空数据
+        elements.btnClear.addEventListener('click', () => {
+            if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                appState.status = 'idle';
+                appState.startTime = null;
+                appState.pauseTime = null;
+                appState.totalPausedDuration = 0;
+                appState.currentTime = 0;
+                appState.annotations = [];
+                appState.sessionId = null;
+                
+                if (appState.animationFrame) {
+                    cancelAnimationFrame(appState.animationFrame);
+                }
+                
+                elements.timerDisplay.textContent = '00:00.000';
+                updateStatusDisplay();
+                updateButtonStates();
+                renderAnnotations();
+                updateStats();
+                saveToLocalStorage();
+                showToast('数据已清空');
+            }
+        });
+
+        // 快捷键支持
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                if (appState.status === 'idle' || appState.status === 'paused') {
+                    elements.btnStart.click();
+                } else if (appState.status === 'running') {
+                    elements.btnPause.click();
+                }
+            }
+        });
+
+        // 显示提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        // LocalStorage 保存
+        function saveToLocalStorage() {
+            const data = {
+                status: appState.status,
+                startTime: appState.startTime,
+                pauseTime: appState.pauseTime,
+                totalPausedDuration: appState.totalPausedDuration,
+                currentTime: appState.currentTime,
+                annotations: appState.annotations,
+                sessionId: appState.sessionId,
+                savedAt: Date.now()
+            };
+            localStorage.setItem('videoAnnotationTool', JSON.stringify(data));
+        }
+
+        // LocalStorage 恢复
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('videoAnnotationTool');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    
+                    // 只恢复已结束或空闲状态的数据
+                    if (data.status === 'stopped' || data.status === 'idle') {
+                        appState.status = data.status;
+                        appState.currentTime = data.currentTime;
+                        appState.annotations = data.annotations || [];
+                        appState.sessionId = data.sessionId;
+                        
+                        if (appState.currentTime > 0) {
+                            elements.timerDisplay.textContent = formatTime(appState.currentTime);
+                        }
+                        
+                        renderAnnotations();
+                        updateStats();
+                        updateStatusDisplay();
+                        updateButtonStates();
+                    }
+                } catch (e) {
+                    console.error('恢复数据失败:', e);
+                }
+            }
+        }
+
+        // 初始化
+        function init() {
+            loadFromLocalStorage();
+            updateStatusDisplay();
+            updateButtonStates();
+            renderAnnotations();
+            updateStats();
+        }
+
+        init();
+    </script>
+</body>
+</html>
+
+
+
+

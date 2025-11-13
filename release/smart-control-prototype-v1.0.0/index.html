@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--
+    ==============================================================================
+    智能飞机杯控制原型 - 主页面
+    ==============================================================================
+    包含以下屏幕：
+    1. 首页 (home) - 功能入口
+    2. WiFi配置流程 (wifiSetup) - 4步式SoftAP配置
+    3. 角色浏览 (characterBrowse) - 从首页进入，查看所有角色
+    4. 角色场景浏览 (characterScenarios) - 查看某角色的所有场景
+    5. 角色选择 (characterSelection) - AI模式中的角色选择
+    6. 场景选择 (scenarioSelection) - AI模式中的场景选择
+    7. 模式选择 (modeSelection) - 自由模式或AI模式
+    8. 自由模式 (freeMode) - 手动控制面板
+    9. AI模式 (aiMode) - AI角色控制面板
+    10. AI偏好学习 (aiPreference) - 功能开发中
+    ==============================================================================
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Control - Premium Experience</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">⚡</div>
+                    <span class="logo-text">SmartControl</span>
+                </div>
+                <div class="connection-status" id="connectionStatus">
+                    <div class="status-indicator offline"></div>
+                    <span class="status-text">Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- ===== 首页 - 功能入口选择 ===== -->
+            <section class="screen active" id="home">
+                <div class="screen-header">
+                    <h1 class="screen-title">智能控制中心</h1>
+                    <p class="screen-subtitle">选择您需要的功能</p>
+                </div>
+                
+                <div class="home-cards">
+                    <div class="home-card" data-action="wifiSetup">
+                        <div class="home-card-icon">📶</div>
+                        <h3 class="home-card-title">设备连接</h3>
+                        <p class="home-card-desc">配置设备WiFi连接</p>
+                        <div class="home-card-arrow">→</div>
+                    </div>
+                    
+                    <div class="home-card" data-action="characterBrowse" data-requires-connection="true">
+                        <div class="home-card-icon">👥</div>
+                        <h3 class="home-card-title">AI模式配置</h3>
+                        <p class="home-card-desc">浏览角色和场景，参与定制</p>
+                        <div class="home-card-status">需先连接设备</div>
+                        <div class="home-card-arrow">→</div>
+                    </div>
+                    
+                    <div class="home-card" data-action="modeSelection" data-requires-connection="true">
+                        <div class="home-card-icon">🎮</div>
+                        <h3 class="home-card-title">智能模式启动</h3>
+                        <p class="home-card-desc">自由模式或AI模式</p>
+                        <div class="home-card-status">需先连接设备</div>
+                        <div class="home-card-arrow">→</div>
+                    </div>
+                </div>
+
+                <div class="home-quick-connect" id="homeQuickConnect">
+                    <div class="quick-connect-info">
+                        <span class="quick-connect-label">快速输入设备 Token</span>
+                        <span class="quick-connect-hint">从设备配置成功页面复制 Token 后在下方粘贴，即可解锁全部功能</span>
+                    </div>
+                    <div class="quick-connect-form">
+                        <input type="text" id="deviceTokenInput" class="quick-connect-input" placeholder="例如：2hwazpsh95yi" autocomplete="off">
+                        <button class="quick-connect-btn" id="deviceTokenSubmit">连接设备</button>
+                        <button class="quick-connect-link" id="deviceDisconnectBtn" type="button">断开</button>
+                    </div>
+                    <div class="quick-connect-status" id="quickConnectStatus">未连接</div>
+                </div>
+            </section>
+
+            <!-- ===== WiFi配置流程 - 4步式SoftAP配置 ===== -->
+            <section class="screen" id="wifiSetup">
+                <div class="setup-header">
+                    <button class="back-btn" data-back="home">← 返回</button>
+                    <h1 class="screen-title">设备连接配置</h1>
+                    <div class="setup-progress">
+                        <div class="progress-step active" data-step="1">1</div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="2">2</div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="3">3</div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="4">4</div>
+                    </div>
+                </div>
+
+                <!-- 步骤1: 切换到设备热点说明 -->
+                <div class="setup-step active" id="setupStep1">
+                    <div class="step-content">
+                        <div class="step-icon">📱</div>
+                        <h2 class="step-title">切换到设备热点</h2>
+                        
+                        <!-- 工作原理说明区域 -->
+                        <div class="mechanism-explanation">
+                            <h3 class="explanation-title">什么是SoftAP配置？</h3>
+                            <p class="explanation-text">
+                                设备启动时会创建一个WiFi热点（SoftAP模式）。当您的手机连接到设备热点后，设备会启动<span class="device-ip-highlight">Captive Portal（强制门户）</span>机制，
+                                自动弹出配置页面，或您可以通过浏览器访问设备IP地址 <strong class="device-ip-highlight">192.168.4.1</strong> 来打开配置页面。
+                            </p>
+                            <div class="connection-notice">
+                                <div class="notice-icon">⚠️</div>
+                                <div class="notice-content">
+                                    <strong>重要提示：</strong>连接设备热点后，您的手机将无法访问互联网服务器（包括此应用）。
+                                    这是正常现象，因为设备尚未连接到您的WiFi网络。
+                                    所有配置操作请在设备提供的配置页面上完成。
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 视频演示区域 -->
+                        <div class="video-demo-container">
+                            <h3 class="video-title">操作演示视频</h3>
+                            <video class="video-demo" controls preload="metadata">
+                                <source src="resource/internetsetupsample_480p.mov" type="video/quicktime">
+                                <source src="resource/internetsetupsample_480p.mov" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                        </div>
+                        
+                        <!-- 手动访问IP说明卡片 -->
+                        <div class="manual-access-card">
+                            <div class="access-card-icon">🌐</div>
+                            <div class="access-card-content">
+                                <h4 class="access-card-title">手动访问配置页面</h4>
+                                <p class="access-card-text">
+                                    如果设备未自动弹出配置页面，请在手机浏览器中访问：
+                                </p>
+                                <div class="device-ip-display">
+                                    <code class="device-ip-highlight">http://192.168.4.1</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作步骤 -->
+                        <div class="step-instructions">
+                            <div class="instruction-item">
+                                <div class="instruction-number">1</div>
+                                <div class="instruction-text">打开手机WiFi设置</div>
+                            </div>
+                            <div class="instruction-item">
+                                <div class="instruction-number">2</div>
+                                <div class="instruction-text">查找设备热点：SmartDevice_XXXX</div>
+                            </div>
+                            <div class="instruction-item">
+                                <div class="instruction-number">3</div>
+                                <div class="instruction-text">连接设备热点（无需密码）</div>
+                            </div>
+                            <div class="instruction-item">
+                                <div class="instruction-number">4</div>
+                                <div class="instruction-text">
+                                    连接后，手机可能会显示"需要登录"提示，或自动弹出配置页面
+                                </div>
+                            </div>
+                            <div class="instruction-item">
+                                <div class="instruction-number">5</div>
+                                <div class="instruction-text">
+                                    如果未自动弹出，请在手机浏览器访问 <strong>192.168.4.1</strong>
+                                </div>
+                            </div>
+                            <div class="instruction-item">
+                                <div class="instruction-number">6</div>
+                                <div class="instruction-text">
+                                    在设备提供的配置页面上完成WiFi设置（继续下一步）
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-large" data-next="2">我已连接到设备配置页面</button>
+                    </div>
+                </div>
+
+                <!-- 步骤2: 检测设备连接 -->
+                <div class="setup-step" id="setupStep2">
+                    <div class="step-content">
+                        <div class="step-icon">🔍</div>
+                        <h2 class="step-title">访问设备配置页面</h2>
+                        <div class="connection-notice" style="margin-bottom: var(--space-6);">
+                            <div class="notice-icon">📋</div>
+                            <div class="notice-content">
+                                <strong>当前状态：</strong>您已连接到设备热点，现在应该能在设备提供的配置页面上操作。
+                                如果您还没有打开配置页面，请在手机浏览器中访问 <strong class="device-ip-highlight">192.168.4.1</strong>。
+                            </div>
+                        </div>
+                        <div class="connection-check">
+                            <div class="check-item">
+                                <div class="check-icon">📶</div>
+                                <div class="check-text">检测设备热点连接</div>
+                                <div class="check-status" id="hotspotStatus">检测中...</div>
+                            </div>
+                            <div class="check-item">
+                                <div class="check-icon">🔗</div>
+                                <div class="check-text">确认已打开设备配置页面</div>
+                                <div class="check-status" id="deviceStatus">等待中...</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-large" data-next="3" id="nextStep2" disabled>已在配置页面，继续</button>
+                    </div>
+                </div>
+
+                <!-- 步骤3: WiFi网络配置 -->
+                <div class="setup-step" id="setupStep3">
+                    <div class="step-content">
+                        <div class="step-icon">🌐</div>
+                        <h2 class="step-title">配置WiFi网络</h2>
+                        <div class="wifi-config">
+                            <div class="wifi-scan">
+                                <button class="btn btn-secondary" id="scanWifi">扫描WiFi网络</button>
+                                <div class="wifi-list" id="wifiList">
+                                    <!-- WiFi列表将在这里动态生成 -->
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-large" data-next="4" id="nextStep3" disabled style="display: none;">开始配置</button>
+                    </div>
+                </div>
+
+                <!-- 步骤4: 配置结果确认 -->
+                <div class="setup-step" id="setupStep4">
+                    <div class="step-content">
+                        <!-- 配置进行中 -->
+                        <div class="config-progress-section" id="configProgressSection">
+                            <div class="step-icon">⏳</div>
+                            <h2 class="step-title">配置中...</h2>
+                            <div class="config-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="configProgress"></div>
+                                </div>
+                                <div class="progress-text" id="configStatus">正在配置设备...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 配置成功结果 -->
+                        <div class="config-result" id="configResult" style="display: none;">
+                            <!-- 成功提示 -->
+                            <div class="setup-success-box">
+                                <div class="success-icon">✅</div>
+                                <h2 class="success-title">Setup Completed!</h2>
+                                <p class="success-message">设备已成功连接到WiFi网络。请保存下方的Device Token，您将需要它来连接设备。然后退出配置。</p>
+                                <button class="btn-link exit-setup-btn" id="exitSetupBtn">退出配置</button>
+                            </div>
+                            
+                            <!-- Device Token -->
+                            <div class="device-token-section">
+                                <label class="token-label">Device token:</label>
+                                <div class="token-display">
+                                    <code class="token-value" id="deviceToken">加载中...</code>
+                                    <div class="token-actions">
+                                        <button class="token-action-btn" id="copyTokenBtn" title="复制Token">
+                                            <span class="copy-icon">📋</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="token-hint">
+                                    <span class="hint-icon">💡</span>
+                                    <span class="hint-text">点击图标复制Device Token。建议记下此Token以便后续连接使用。</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 连接信息 -->
+                            <div class="connection-info-section">
+                                <label class="connection-label">Connected to:</label>
+                                <div class="connection-details">
+                                    <div class="wifi-icon-large">📶</div>
+                                    <div class="network-name" id="connectedNetworkName">连接中...</div>
+                                    <div class="network-info">
+                                        <div class="info-item">
+                                            <span class="info-label">IP:</span>
+                                            <span class="info-value" id="deviceIP">-</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Netmask:</span>
+                                            <span class="info-value" id="deviceNetmask">-</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Gateway:</span>
+                                            <span class="info-value" id="deviceGateway">-</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Strength:</span>
+                                            <span class="info-value" id="wifiStrength">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 说明文字 -->
+                            <div class="device-info-notice">
+                                <p class="notice-text">
+                                    设备已成功配置并连接到WiFi网络。您现在可以通过MQTT协议远程控制设备。
+                                    请妥善保管Device Token，这是连接设备的唯一凭证。
+                                </p>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-large" data-back="home" id="finishSetup">完成</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- WiFi密码输入模态框 -->
+                <div class="wifi-password-modal" id="wifiPasswordModal" style="display: none;">
+                    <div class="modal-overlay"></div>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">输入WiFi密码</h3>
+                            <button class="modal-close" id="closePasswordModal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="selected-wifi-info">
+                                <div class="wifi-icon">📶</div>
+                                <div class="wifi-name-selected" id="selectedWifiName">WiFi名称</div>
+                            </div>
+                            <div class="password-input-group">
+                                <label class="input-label">WiFi密码</label>
+                                <input type="password" class="input-field" id="wifiPasswordInput" placeholder="输入WiFi密码" autofocus>
+                                <div class="password-toggle">
+                                    <input type="checkbox" id="showPassword">
+                                    <label for="showPassword">显示密码</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" id="cancelPasswordBtn">取消</button>
+                            <button class="btn btn-primary" id="confirmPasswordBtn" disabled>确认</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 角色浏览 - 从首页"AI模式配置"进入，查看所有角色和场景 ===== -->
+            <section class="screen" id="characterBrowse">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="home">← 返回</button>
+                    <h1 class="screen-title">角色浏览</h1>
+                    <p class="screen-subtitle">浏览所有角色和场景，参与定制</p>
+                </div>
+                
+                <!-- Tab导航 -->
+                <div class="browse-tabs">
+                    <button class="browse-tab active" data-tab="ai" id="browseTabAI">
+                        <span>AI角色</span>
+                    </button>
+                    <button class="browse-tab" data-tab="idol" id="browseTabIdol">
+                        <span>女优分身</span>
+                    </button>
+                </div>
+                
+                <div class="character-video-grid" id="characterBrowseGrid">
+                    <!-- 角色视频卡片将在这里动态生成 -->
+                </div>
+            </section>
+
+            <!-- ===== 角色场景浏览 - 查看某角色的所有场景 ===== -->
+            <section class="screen" id="characterScenarios">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="characterBrowse">← 返回角色</button>
+                    <h1 class="screen-title" id="browseCharacterName">角色场景</h1>
+                    <p class="screen-subtitle">浏览该角色的所有可用场景</p>
+                </div>
+                
+                <div class="scenario-grid" id="characterScenariosGrid">
+                    <!-- 场景卡片将在这里动态生成 -->
+                </div>
+            </section>
+
+            <!-- ===== 女优详情页 - 显示女优的详细信息 ===== -->
+            <section class="screen" id="idolDetail">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="characterBrowse">← 返回</button>
+                    <h1 class="screen-title" id="idolDetailName">女优详情</h1>
+                </div>
+                
+                <div class="idol-detail-content">
+                    <!-- 视频背景区域 -->
+                    <div class="idol-video-background" id="idolVideoBackground">
+                        <video class="idol-background-video" id="idolBackgroundVideo" autoplay muted loop playsinline>
+                            <source src="" type="video/quicktime">
+                            <source src="" type="video/mp4">
+                        </video>
+                        <div class="idol-video-overlay"></div>
+                    </div>
+                    
+                    <!-- 详细信息区域 -->
+                    <div class="idol-info-container">
+                        <!-- 基本信息 -->
+                        <div class="idol-info-section idol-basic-info">
+                            <div class="info-row">
+                                <span class="info-label">昵称</span>
+                                <span class="info-value" id="idolNickname">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">别名</span>
+                                <span class="info-value" id="idolAlias">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">国籍</span>
+                                <span class="info-value" id="idolNationality">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">出生</span>
+                                <span class="info-value" id="idolBirthDate">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">出道地点</span>
+                                <span class="info-value" id="idolBirthPlace">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">活跃年代</span>
+                                <span class="info-value" id="idolActiveYears">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">专属合约</span>
+                                <span class="info-value" id="idolExclusiveContract">-</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 身材数据（粉色标题栏） -->
+                        <div class="idol-info-section idol-measurements">
+                            <div class="idol-measurements-header">
+                                <span>身材 (2021年数值)</span>
+                            </div>
+                            <div class="measurements-content">
+                                <div class="info-row">
+                                    <span class="info-label">身高 / 体重</span>
+                                    <span class="info-value" id="idolHeightWeight">-</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">BMI</span>
+                                    <span class="info-value" id="idolBMI">-</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">三围</span>
+                                    <span class="info-value" id="idolMeasurements">-</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">罩杯</span>
+                                    <span class="info-value" id="idolCup">-</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">特征备注</span>
+                                    <span class="info-value" id="idolFeatures">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 社交媒体链接 -->
+                        <div class="idol-info-section social-media-section">
+                            <div class="social-media-links" id="idolSocialMedia">
+                                <!-- 社交媒体链接将在这里动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 角色选择 - AI模式流程中的角色选择 ===== -->
+            <section class="screen" id="characterSelection">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="modeSelection">← 返回</button>
+                    <h1 class="screen-title">选择角色</h1>
+                    <p class="screen-subtitle">选择您喜欢的角色类型</p>
+                </div>
+                
+                <!-- Tab导航 -->
+                <div class="browse-tabs">
+                    <button class="browse-tab active" data-tab="ai" id="selectionTabAI">
+                        <span>AI角色</span>
+                    </button>
+                    <button class="browse-tab" data-tab="idol" id="selectionTabIdol">
+                        <span>女优分身</span>
+                    </button>
+                </div>
+                
+                <div class="character-video-grid" id="characterSelectionGrid">
+                    <!-- 角色视频卡片将在这里动态生成 -->
+                </div>
+            </section>
+
+            <!-- ===== 场景选择 - AI模式流程中的场景选择 ===== -->
+            <section class="screen" id="scenarioSelection">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="characterSelection">← 返回</button>
+                    <h1 class="screen-title">选择体验场景</h1>
+                    <p class="screen-subtitle" id="selectedCharacterName">为 <span id="characterName"></span> 选择场景</p>
+                </div>
+                
+                <div class="scenario-grid" id="scenarioGrid">
+                    <!-- 场景卡片将在这里动态生成 -->
+                </div>
+            </section>
+
+            <!-- ===== 模式选择 - 自由模式或AI模式 ===== -->
+            <section class="screen" id="modeSelection">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="home">← 返回</button>
+                    <h1 class="screen-title">选择控制模式</h1>
+                    <p class="screen-subtitle">选择您喜欢的控制方式</p>
+                </div>
+                
+                <div class="mode-cards">
+                    <div class="mode-card" data-mode="free">
+                        <div class="mode-icon">🎛️</div>
+                        <h3 class="mode-title">自由模式</h3>
+                        <p class="mode-desc">手动控制所有参数，完全自定义体验</p>
+                        <div class="mode-features">
+                            <div class="feature-item">• 实时参数调节</div>
+                            <div class="feature-item">• 波形可视化</div>
+                            <div class="feature-item">• 语音指令控制</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mode-card" data-mode="ai">
+                        <div class="mode-icon">🤖</div>
+                        <h3 class="mode-title">AI模式</h3>
+                        <p class="mode-desc">智能AI角色陪伴，沉浸式体验</p>
+                        <div class="mode-features">
+                            <div class="feature-item">• AI角色互动</div>
+                            <div class="feature-item">• 智能场景编排</div>
+                            <div class="feature-item">• 语音对话系统</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 自由模式控制面板 - 手动控制所有参数 ===== -->
+            <section class="screen" id="freeMode">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="modeSelection">← 返回</button>
+                    <h1 class="screen-title">自由模式</h1>
+                    <div class="mode-status">
+                        <div class="status-indicator running"></div>
+                        <span class="status-text">运行中</span>
+                    </div>
+                </div>
+
+                <!-- Waveform Display -->
+                <div class="waveform-section">
+                    <div class="waveform-container" id="waveformContainer">
+                        <!-- 波形动画将在这里显示 -->
+                    </div>
+                </div>
+
+                <!-- 手动控制区域 - 滑动条控制参数 -->
+                <div class="manual-controls">
+                    <div class="control-group">
+                        <h3 class="control-title">手动控制</h3>
+                        
+                        <div class="control-item">
+                            <label class="control-label">伸缩速度</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="strokeSpeedSlider" min="0" max="100" value="50">
+                                <span class="slider-value" id="strokeSpeedValue">50%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label class="control-label">旋转速度</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="rotationSpeedSlider" min="0" max="100" value="30">
+                                <span class="slider-value" id="rotationSpeedValue">30%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-item">
+                            <label class="control-label">夹吸力度</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="suctionIntensitySlider" min="0" max="100" value="40">
+                                <span class="slider-value" id="suctionIntensityValue">40%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 语音交互区域 - 语音指令和语音播报 -->
+                <div class="voice-section">
+                    <div class="voice-controls">
+                        <button class="voice-btn" id="voiceCommandBtn">
+                            <div class="voice-icon">🎤</div>
+                            <span>语音指令</span>
+                        </button>
+                        <button class="voice-btn" id="stopBtn">
+                            <div class="voice-icon">▶️</div>
+                            <span>启动</span>
+                        </button>
+                        <!-- 语音播报状态图标 - 显示当前是否有语音播报 -->
+                        <div class="voice-status">
+                            <span class="broadcast-icon" id="freeBroadcastIcon" title="语音播报状态">🔇</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 语音响应显示区域 - 显示语音播报的文字内容 -->
+                    <div class="voice-responses" id="voiceResponseContainer">
+                        <!-- 语音响应将在这里显示 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== AI模式控制面板 - AI角色控制，带角色背景和场景语音播报 ===== -->
+            <section class="screen" id="aiMode">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="modeSelection">← 返回</button>
+                    <h1 class="screen-title">AI模式</h1>
+                    <div class="mode-status">
+                        <div class="status-indicator running"></div>
+                        <span class="status-text">运行中</span>
+                    </div>
+                </div>
+
+                <!-- AI模式控制区域 - 显示当前角色/场景信息和控制按钮 -->
+                <div class="ai-controls">
+                    <div class="ai-info">
+                        <div class="character-info">
+                            <div class="character-avatar" id="aiCharacterAvatar"></div>
+                            <div class="character-details">
+                                <h3 id="aiCharacterName">角色名称</h3>
+                                <p id="aiScenarioName">场景名称</p>
+                            </div>
+                        </div>
+                        
+                        <!-- 波形图区域 - 显示设备运行速度节奏 -->
+                        <div class="waveform-container">
+                            <canvas id="waveformCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="ai-controls-panel">
+                        <button class="ai-control-btn" id="aiVoiceCommandBtn">
+                            <div class="control-icon">🎤</div>
+                            <span>语音对话</span>
+                        </button>
+                        <button class="ai-control-btn" id="aiChatBtn">
+                            <div class="control-icon">💬</div>
+                            <span>互动</span>
+                        </button>
+                        <button class="ai-control-btn" id="aiStopBtn">
+                            <div class="control-icon">⏹️</div>
+                            <span>停止</span>
+                        </button>
+                        <!-- 角色语音播报状态图标 -->
+                        <div class="voice-status">
+                            <span class="broadcast-icon" id="aiBroadcastIcon" title="角色语音播报">🔇</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI即时反馈按钮 - 用户快速反馈面板 -->
+                <div class="ai-feedback-panel">
+                    <div class="feedback-header">
+                        <span class="feedback-title">即时反馈</span>
+                    </div>
+                    <div class="feedback-buttons">
+                        <button class="feedback-btn feedback-btn-like" id="feedbackLike" title="我喜欢">
+                            <span class="feedback-icon">👍</span>
+                            <span class="feedback-text">喜欢</span>
+                        </button>
+                        <button class="feedback-btn feedback-btn-skip" id="feedbackSkip" title="跳过">
+                            <span class="feedback-icon">⏭️</span>
+                            <span class="feedback-text">跳过</span>
+                        </button>
+                        <button class="feedback-btn feedback-btn-fast" id="feedbackFast" title="快点">
+                            <span class="feedback-icon">⚡</span>
+                            <span class="feedback-text">快点</span>
+                        </button>
+                        <button class="feedback-btn feedback-btn-slow" id="feedbackSlow" title="慢点">
+                            <span class="feedback-icon">🐌</span>
+                            <span class="feedback-text">慢点</span>
+                        </button>
+                        <button class="feedback-btn feedback-btn-hard" id="feedbackHard" title="用力">
+                            <span class="feedback-icon">💪</span>
+                            <span class="feedback-text">用力</span>
+                        </button>
+                        <button class="feedback-btn feedback-btn-soft" id="feedbackSoft" title="轻点">
+                            <span class="feedback-icon">🍃</span>
+                            <span class="feedback-text">轻点</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI语音响应显示区域 - 显示角色语音播报的文字内容 -->
+                <div class="ai-voice-responses" id="aiVoiceResponseContainer">
+                    <!-- AI语音响应将在这里显示 -->
+                </div>
+
+                <!-- AI互动聊天模态框 -->
+                <div class="chat-modal" id="aiChatModal">
+                    <div class="chat-modal-content" data-state="compact">
+                        <button class="chat-close-btn" id="chatCloseBtn">×</button>
+
+                        <!-- 第一形态：语音待命 -->
+                        <div class="chat-compact-view" id="chatCompactView">
+                            <div class="chat-compact-avatar">
+                                <div class="chat-avatar-sphere" id="chatCompactAvatar"></div>
+                                <div class="chat-voice-wave" id="chatCompactWave"></div>
+                            </div>
+                            <div class="chat-compact-tip">点击角色头像开始互动</div>
+                        </div>
+
+                        <!-- 第二形态：最近对话 -->
+                        <div class="chat-recent-view" id="chatRecentView">
+                            <div class="chat-recent-header">
+                                <div class="chat-recent-character">
+                                    <div class="chat-avatar-circle" id="chatRecentAvatar"></div>
+                                    <div class="chat-character-meta">
+                                        <h3 id="chatCharacterName">角色名称</h3>
+                                        <span id="chatCharacterState">等待语音交互</span>
+                                    </div>
+                                </div>
+                                <div class="chat-recent-actions">
+                                    <button class="chat-history-btn" id="chatHistoryBtn" title="查看完整聊天">⟲</button>
+                                </div>
+                            </div>
+                            <div class="chat-recent-messages" id="chatRecentMessages">
+                                <!-- 最近对话消息 -->
+                            </div>
+                            <div class="chat-media-preview" id="chatMediaPreview">
+                                <button class="chat-media-close" id="chatMediaPreviewClose" title="隐藏媒体预览">×</button>
+                                <div class="chat-media-content" id="chatMediaContent">
+                                    <!-- 媒体内容预览 -->
+                                </div>
+                            </div>
+                            <div class="chat-quick-templates" id="chatQuickTemplates">
+                                <!-- 快捷模板按钮将在这里显示 -->
+                            </div>
+                            <div class="chat-voice-toolbar">
+                                <button class="template-toggle-btn" id="templateToggleBtn" title="显示/隐藏快捷用语">💭</button>
+                                <button class="voice-record-btn" id="voiceRecordBtn" title="长按开始语音">🎙️ 按住说话</button>
+                                <button class="voice-stop-btn" id="voiceStopBtn" title="结束语音">⏹️</button>
+                            </div>
+                        </div>
+
+                        <!-- 第三形态：完整历史 -->
+                        <div class="chat-history-view" id="chatHistoryView">
+                            <div class="chat-history-header">
+                                <button class="chat-history-back" id="chatHistoryBackBtn">←</button>
+                                <h3>完整聊天记录</h3>
+                            </div>
+                            <div class="chat-history-messages" id="chatHistoryMessages">
+                                <!-- 历史聊天消息 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== AI偏好学习 - 功能开发中，预留位置 ===== -->
+            <section class="screen" id="aiPreference">
+                <div class="screen-header">
+                    <button class="back-btn" data-back="home">← 返回</button>
+                    <h1 class="screen-title">AI偏好学习</h1>
+                    <p class="screen-subtitle">系统正在学习您的偏好</p>
+                </div>
+                
+                <div class="placeholder-content">
+                    <div class="placeholder-icon">🧠</div>
+                    <h2 class="placeholder-title">功能开发中</h2>
+                    <p class="placeholder-desc">AI偏好学习系统正在开发中，敬请期待...</p>
+                    <div class="placeholder-features">
+                        <div class="feature-item">• 使用习惯分析</div>
+                        <div class="feature-item">• 偏好模式推荐</div>
+                        <div class="feature-item">• 个性化体验优化</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ===== 底部导航栏 - 快速跳转到主要功能 ===== -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-screen="home">
+                <div class="nav-icon">🏠</div>
+                <span class="nav-label">首页</span>
+            </button>
+            <button class="nav-item" data-screen="freeMode">
+                <div class="nav-icon">🎛️</div>
+                <span class="nav-label">自由模式</span>
+            </button>
+            <button class="nav-item" data-screen="aiMode">
+                <div class="nav-icon">🤖</div>
+                <span class="nav-label">AI模式</span>
+            </button>
+            <button class="nav-item" data-screen="aiPreference">
+                <div class="nav-icon">🧠</div>
+                <span class="nav-label">AI学习</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ===== 加载遮罩 - 全局加载提示 ===== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">处理中...</p>
+    </div>
+
+    <!-- ===== Toast通知区域 - 全局消息提示 ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- ===== 角色编辑模态框 ===== -->
+    <div class="character-edit-modal" id="characterEditModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="edit-modal-content">
+            <!-- 模态框头部 -->
+            <div class="edit-modal-header">
+                <h2 class="edit-character-name" id="editCharacterName">Character Name, Age</h2>
+                <div class="edit-modal-actions">
+                    <button class="edit-btn-icon" id="editVoiceBtn" title="Voice">
+                        <span>🔊</span>
+                    </button>
+                    <button class="edit-close-btn" id="closeEditModal">&times;</button>
+                </div>
+            </div>
+            
+            <!-- 标签页导航 -->
+            <div class="edit-tabs">
+                <button class="edit-tab" data-tab="appearance" id="tabAppearance">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-label">Appearance</span>
+                </button>
+                <button class="edit-tab active" data-tab="character" id="tabCharacter">
+                    <span class="tab-icon">🧠</span>
+                    <span class="tab-label">Character</span>
+                </button>
+            </div>
+            
+            <!-- 标签页内容 -->
+            <div class="edit-tab-content">
+                <!-- Appearance标签页 -->
+                <div class="tab-panel" id="panelAppearance" style="display: none;">
+                    <!-- Appearance内容将在这里显示 -->
+                    <div class="edit-info-grid">
+                        <!-- Appearance相关的编辑项 -->
+                    </div>
+                </div>
+                
+                <!-- Character标签页 -->
+                <div class="tab-panel active" id="panelCharacter">
+                    <div class="edit-info-grid">
+                        <!-- NAME卡片 -->
+                        <div class="edit-info-card">
+                            <div class="info-card-header">
+                                <span class="info-category">NAME</span>
+                                <button class="edit-icon-btn" data-edit="name" title="编辑">
+                                    <span>✏️</span>
+                                </button>
+                            </div>
+                            <div class="info-card-value" id="infoName">-</div>
+                        </div>
+                        
+                        <!-- PERSONALITY卡片 -->
+                        <div class="edit-info-card">
+                            <div class="info-card-header">
+                                <span class="info-category">PERSONALITY</span>
+                                <button class="edit-icon-btn" data-edit="personality" title="编辑">
+                                    <span>✏️</span>
+                                </button>
+                            </div>
+                            <div class="info-card-value" id="infoPersonality">-</div>
+                        </div>
+                        
+                        <!-- RELATIONSHIP卡片 -->
+                        <div class="edit-info-card">
+                            <div class="info-card-header">
+                                <span class="info-category">RELATIONSHIP</span>
+                                <button class="edit-icon-btn" data-edit="relationship" title="编辑">
+                                    <span>✏️</span>
+                                </button>
+                            </div>
+                            <div class="info-card-value" id="infoRelationship">-</div>
+                        </div>
+                        
+                        <!-- OCCUPATION卡片 -->
+                        <div class="edit-info-card">
+                            <div class="info-card-header">
+                                <span class="info-category">OCCUPATION</span>
+                                <button class="edit-icon-btn" data-edit="occupation" title="编辑">
+                                    <span>✏️</span>
+                                </button>
+                            </div>
+                            <div class="info-card-value" id="infoOccupation">-</div>
+                        </div>
+                        
+                        <!-- KINKS卡片 -->
+                        <div class="edit-info-card">
+                            <div class="info-card-header">
+                                <span class="info-category">KINKS</span>
+                                <button class="edit-icon-btn" data-edit="kinks" title="编辑">
+                                    <span>✏️</span>
+                                </button>
+                            </div>
+                            <div class="info-card-value" id="infoKinks">-</div>
+                        </div>
+                        
+                        <!-- VOICE卡片 -->
+                        <div class="edit-info-card voice-card">
+                            <div class="info-card-header">
+                                <span class="info-category">VOICE</span>
+                                <button class="edit-icon-btn" data-edit="voice" title="编辑">
+                                    <span>✏️</span>
+                                </button>
+                            </div>
+                            <div class="info-card-value" id="infoVoice">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== 属性选择模态框 ===== -->
+    <div class="selection-modal" id="selectionModal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="selection-modal-content">
+            <div class="selection-header">
+                <h3 class="selection-title" id="selectionTitle">选择选项</h3>
+                <button class="modal-close" id="closeSelectionModal">&times;</button>
+            </div>
+            <div class="selection-grid" id="selectionGrid">
+                <!-- 选择选项将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== JavaScript模块加载 ===== -->
+    <!-- characters.js - 角色和场景配置数据 -->
+    <script src="characters.js"></script>
+    <!-- voice.js - 语音交互模块 -->
+    <script src="voice.js"></script>
+    <!-- idols.js - 女优分身数据 -->
+    <script src="idols.js"></script>
+    <!-- chat-demo.js - AI互动聊天演示数据 -->
+    <script src="chat-demo.js"></script>
+    <!-- waveform.js - 波形动画模块 -->
+    <script src="waveform.js"></script>
+    <!-- mqtt.js - MQTT通信模块和设备命令定义 -->
+    <script src="mqtt.js"></script>
+    <!-- app.js - 主应用逻辑 -->
+    <script src="app.js"></script>
+</body>
+</html>
