@@ -245,6 +245,14 @@ class DeviceCommands {
         return this.createCommand('ai_mode_stop');
     }
 
+    static pauseAIMode() {
+        return this.createCommand('ai_mode_pause');
+    }
+
+    static resumeAIMode() {
+        return this.createCommand('ai_mode_resume');
+    }
+
     // Free Mode Commands
     static startFreeMode() {
         return this.createCommand('free_mode_start');
@@ -252,6 +260,14 @@ class DeviceCommands {
 
     static stopFreeMode() {
         return this.createCommand('free_mode_stop');
+    }
+
+    static pauseFreeMode() {
+        return this.createCommand('free_mode_pause');
+    }
+
+    static resumeFreeMode() {
+        return this.createCommand('free_mode_resume');
     }
 
     static updateAIPreferences(preferences) {

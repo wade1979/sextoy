@@ -47,6 +47,15 @@ PID_FILE = '.server.pid'
 class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     """自定义HTTP请求处理器，添加CORS支持"""
     
+    def do_GET(self):
+        # 处理favicon.ico请求，避免404错误
+        if self.path.startswith('/favicon.ico'):
+            self.send_response(204)  # No Content
+            self.end_headers()
+            return
+        # 处理其他GET请求
+        super().do_GET()
+    
     def end_headers(self):
         # 添加CORS头，用于MQTT测试
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -73,8 +82,11 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 raise
     
     def log_message(self, format, *args):
-        """重写日志方法，避免某些请求导致错误"""
+        """重写日志方法，避免某些请求导致错误，并过滤favicon.ico请求"""
         try:
+            # 过滤favicon.ico请求，避免日志中的404错误
+            if args and '/favicon.ico' in str(args[0]):
+                return
             super().log_message(format, *args)
         except (UnicodeEncodeError, OSError) as e:
             # 忽略编码错误和系统错误，避免中断服务器

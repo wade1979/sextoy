@@ -516,26 +516,66 @@
                     <p class="screen-subtitle">选择您喜欢的控制方式</p>
                 </div>
                 
-                <div class="mode-cards">
-                    <div class="mode-card" data-mode="free">
-                        <div class="mode-icon">🎛️</div>
-                        <h3 class="mode-title">自由模式</h3>
-                        <p class="mode-desc">手动控制所有参数，完全自定义体验</p>
-                        <div class="mode-features">
-                            <div class="feature-item">• 实时参数调节</div>
-                            <div class="feature-item">• 波形可视化</div>
-                            <div class="feature-item">• 语音指令控制</div>
+                <!-- Tab Navigation -->
+                <div class="mode-selection-tabs">
+                    <button class="mode-selection-tab active" data-tab="modes">
+                        <span class="tab-icon">🎮</span>
+                        <span class="tab-label">智能模式</span>
+                    </button>
+                    <button class="mode-selection-tab" data-tab="companion">
+                        <span class="tab-icon">💝</span>
+                        <span class="tab-label">My Companion</span>
+                    </button>
+                </div>
+                
+                <!-- Tab Content -->
+                <div class="mode-selection-tab-content">
+                    <!-- 智能模式 Tab -->
+                    <div class="mode-selection-panel active" data-panel="modes">
+                        <div class="mode-cards">
+                            <div class="mode-card" data-mode="free">
+                                <div class="mode-icon">🎛️</div>
+                                <h3 class="mode-title">自由模式</h3>
+                                <p class="mode-desc">手动控制所有参数，完全自定义体验</p>
+                                <div class="mode-features">
+                                    <div class="feature-item">• 实时参数调节</div>
+                                    <div class="feature-item">• 波形可视化</div>
+                                    <div class="feature-item">• 语音指令控制</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mode-card" data-mode="ai">
+                                <div class="mode-icon">🤖</div>
+                                <h3 class="mode-title">AI模式</h3>
+                                <p class="mode-desc">智能AI角色陪伴，沉浸式体验</p>
+                                <div class="mode-features">
+                                    <div class="feature-item">• AI角色互动</div>
+                                    <div class="feature-item">• 智能场景编排</div>
+                                    <div class="feature-item">• 语音对话系统</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="mode-card" data-mode="ai">
-                        <div class="mode-icon">🤖</div>
-                        <h3 class="mode-title">AI模式</h3>
-                        <p class="mode-desc">智能AI角色陪伴，沉浸式体验</p>
-                        <div class="mode-features">
-                            <div class="feature-item">• AI角色互动</div>
-                            <div class="feature-item">• 智能场景编排</div>
-                            <div class="feature-item">• 语音对话系统</div>
+                    <!-- My Companion Tab -->
+                    <div class="mode-selection-panel" data-panel="companion">
+                        <div class="companion-content">
+                            <div class="companion-icon">💝</div>
+                            <h2 class="companion-title">My Companion</h2>
+                            <p class="companion-description">系统为你定制的AI角色，越用越懂你</p>
+                            <div class="companion-features">
+                                <div class="companion-feature">
+                                    <div class="companion-feature-icon">❤️</div>
+                                    <div class="companion-feature-text">
+                                        <h4>默契提升</h4>
+                                        <p>使用越多，配合越默契，体验越流畅</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="companion-status">
+                                <div class="companion-status-label">当前状态</div>
+                                <div class="companion-status-value">正在学习中...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -705,11 +745,20 @@
 
                         <!-- 第一形态：语音待命 -->
                         <div class="chat-compact-view" id="chatCompactView">
-                            <div class="chat-compact-avatar">
-                                <div class="chat-avatar-sphere" id="chatCompactAvatar"></div>
-                                <div class="chat-voice-wave" id="chatCompactWave"></div>
+                            <!-- 视频背景 -->
+                            <video class="chat-compact-video" id="chatCompactVideo" autoplay loop muted playsinline webkit-playsinline></video>
+                            <!-- 模糊蒙版 -->
+                            <div class="chat-compact-overlay"></div>
+                            <!-- 中间内容 -->
+                            <div class="chat-compact-content">
+                                <button class="chat-compact-play-btn" id="chatCompactPlayBtn">
+                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="30" cy="30" r="30" fill="rgba(255, 255, 255, 0.2)"/>
+                                        <path d="M24 18L42 30L24 42V18Z" fill="white"/>
+                                    </svg>
+                                </button>
+                                <div class="chat-compact-tip">点击开始互动</div>
                             </div>
-                            <div class="chat-compact-tip">点击角色头像开始互动</div>
                         </div>
 
                         <!-- 第二形态：最近对话 -->

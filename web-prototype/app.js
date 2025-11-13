@@ -178,11 +178,41 @@ class SmartControlApp {
 
     // Mode Selection Listeners
     setupModeListeners() {
+        // Mode selection tabs
+        document.querySelectorAll('.mode-selection-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.currentTarget.dataset.tab;
+                this.switchModeSelectionTab(tabName);
+            });
+        });
+
+        // Mode cards (free/AI mode selection)
         document.querySelectorAll('.mode-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const mode = e.currentTarget.dataset.mode;
                 this.selectMode(mode);
             });
+        });
+    }
+
+    // Switch Mode Selection Tab
+    switchModeSelectionTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.mode-selection-tab').forEach(tab => {
+            if (tab.dataset.tab === tabName) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+
+        // Update tab panels
+        document.querySelectorAll('.mode-selection-panel').forEach(panel => {
+            if (panel.dataset.panel === tabName) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
         });
     }
 
@@ -3096,6 +3126,9 @@ class SmartControlApp {
         
         if (!chatBtn || !chatModal || !modalContent) return;
         
+        const compactVideo = document.getElementById('chatCompactVideo');
+        const compactPlayBtn = document.getElementById('chatCompactPlayBtn');
+        
         this.chatElements = {
             modal: chatModal,
             content: modalContent,
@@ -3106,6 +3139,8 @@ class SmartControlApp {
             historyBtn,
             historyBackBtn,
             compactView,
+            compactVideo,
+            compactPlayBtn,
             recentMessages: document.getElementById('chatRecentMessages'),
             historyMessages: document.getElementById('chatHistoryMessages'),
             mediaPreview: document.getElementById('chatMediaPreview'),
@@ -3129,6 +3164,15 @@ class SmartControlApp {
             }
         });
         
+        // 播放按钮点击事件
+        if (compactPlayBtn) {
+            compactPlayBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.setChatState('recent');
+            });
+        }
+        
+        // 整个 compact view 点击也可以触发
         if (compactView) {
             compactView.addEventListener('click', () => this.setChatState('recent'));
         }
@@ -3170,6 +3214,24 @@ class SmartControlApp {
         
         const imageUrl = this.currentCharacter?.backgroundImage || this.currentCharacter?.imagePath || '';
         const displayName = this.currentCharacter?.name || this.currentCharacter?.englishName || '角色';
+        
+        // 设置视频背景
+        if (elements.compactVideo && this.currentCharacter) {
+            const videoPath = this.currentCharacter.videoPath || this.currentCharacter.backgroundImage;
+            if (videoPath) {
+                const video = elements.compactVideo;
+                // 清除之前的源
+                video.src = '';
+                video.load();
+                // 设置新源
+                video.src = videoPath;
+                video.load();
+                // 尝试播放（如果浏览器允许）
+                video.play().catch(err => {
+                    console.log('视频自动播放被阻止:', err);
+                });
+            }
+        }
         
         if (elements.compactAvatar) {
             if (imageUrl) {
@@ -3334,7 +3396,8 @@ class SmartControlApp {
         }
         if (media.type === 'video') {
             const posterAttr = media.poster ? ` poster="${media.poster}"` : '';
-            return `<div class="message-media"><video src="${media.url}" controls preload="metadata"${posterAttr} playsinline muted></video></div>`;
+            // 添加 webkit-playsinline 以确保在 iOS 上内联播放，controls 属性确保控制条可见
+            return `<div class="message-media"><video src="${media.url}" controls preload="metadata"${posterAttr} playsinline webkit-playsinline></video></div>`;
         }
         return '';
     }
@@ -3458,7 +3521,16 @@ class SmartControlApp {
         if (this.chatRecording) return;
         
         if (!this.checkSpeechRecognitionSupport()) {
-            this.showToast('当前浏览器不支持语音识别，请使用Chrome或Edge浏览器', 'warning');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isChrome = /Chrome/i.test(navigator.userAgent) && !/Edge|OPR|Opera/i.test(navigator.userAgent);
+            const isAndroidChrome = isMobile && isChrome && /Android/i.test(navigator.userAgent);
+            const isIOSChrome = isMobile && isChrome && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            
+            if (isIOSChrome || isAndroidChrome) {
+                this.showToast('Chrome 移动端不支持语音识别，请使用 Safari 浏览器', 'warning');
+            } else {
+                this.showToast('当前浏览器不支持语音识别，请使用 Chrome、Edge 或 Safari 浏览器', 'warning');
+            }
             return;
         }
         
@@ -3482,6 +3554,14 @@ class SmartControlApp {
             this.aiModeRecognition.continuous = false;
             this.aiModeRecognition.interimResults = true;
             
+            // 设置一个标志来跟踪是否有最终结果
+            this.aiModeRecognition.finalTranscript = false;
+            
+            this.aiModeRecognition.onstart = () => {
+                console.log('AI模式：语音识别已启动');
+                this.updateChatStatus('正在聆听，请继续说话…');
+            };
+            
             this.aiModeRecognition.onresult = (event) => {
                 let finalTranscript = '';
                 let interimTranscript = '';
@@ -3490,6 +3570,7 @@ class SmartControlApp {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript;
+                        this.aiModeRecognition.finalTranscript = true;
                     } else {
                         interimTranscript += transcript;
                     }
@@ -3507,7 +3588,7 @@ class SmartControlApp {
             };
             
             this.aiModeRecognition.onerror = (event) => {
-                console.error('AI模式语音识别错误:', event.error);
+                console.error('AI模式语音识别错误:', event.error, event);
                 if (event.error === 'no-speech') {
                     this.updateChatStatus('未检测到语音，请重试');
                     setTimeout(() => {
@@ -3516,6 +3597,21 @@ class SmartControlApp {
                 } else if (event.error === 'network') {
                     this.showToast('网络错误，请检查网络连接', 'error');
                     this.stopVoiceRecordingDemo(true);
+                } else if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+                    // 权限被拒绝 - 这是最常见的问题
+                    this.chatRecording = false;
+                    this.isAIModeListening = false;
+                    this.chatElements?.voiceRecordBtn?.classList.remove('recording');
+                    this.chatElements?.voiceStopBtn?.classList.remove('active');
+                    this.showToast('麦克风权限被拒绝。请在浏览器地址栏点击锁图标 → 网站设置 → 允许麦克风', 'error');
+                    this.updateChatStatus('等待语音交互');
+                } else if (event.error === 'service-not-allowed') {
+                    this.chatRecording = false;
+                    this.isAIModeListening = false;
+                    this.chatElements?.voiceRecordBtn?.classList.remove('recording');
+                    this.chatElements?.voiceStopBtn?.classList.remove('active');
+                    this.showToast('语音识别服务不可用，请检查网络或浏览器设置', 'error');
+                    this.updateChatStatus('等待语音交互');
                 } else {
                     this.showToast('语音识别出错: ' + event.error, 'error');
                     this.stopVoiceRecordingDemo(true);
@@ -3529,14 +3625,17 @@ class SmartControlApp {
                 }
             };
             
+            // 必须在用户手势上下文中直接启动（移动端Chrome要求）
+            // 不要在这里添加任何异步操作
             this.aiModeRecognition.start();
         } catch (error) {
             console.error('初始化AI模式语音识别失败:', error);
-            this.showToast('无法启动语音识别，请检查麦克风权限', 'error');
+            this.showToast('无法启动语音识别: ' + (error.message || '未知错误'), 'error');
             this.chatRecording = false;
             this.isAIModeListening = false;
             this.chatElements?.voiceRecordBtn?.classList.remove('recording');
             this.chatElements?.voiceStopBtn?.classList.remove('active');
+            this.updateChatStatus('等待语音交互');
         }
     }
     
@@ -3685,7 +3784,22 @@ class SmartControlApp {
      * 检查浏览器是否支持语音识别
      */
     checkSpeechRecognitionSupport() {
-        return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+        // 检查是否支持 SpeechRecognition API
+        const hasSupport = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+        
+        // 移动端 Chrome 可能不支持或限制 SpeechRecognition
+        // 在 iOS 上，Chrome 使用 Safari 的引擎，支持可能有限
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isChrome = /Chrome/i.test(navigator.userAgent) && !/Edge|OPR|Opera/i.test(navigator.userAgent);
+        const isIOSChrome = isMobile && isChrome && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
+        if (isIOSChrome) {
+            // iOS 上的 Chrome 可能不支持 SpeechRecognition
+            console.warn('iOS Chrome 可能不完全支持 SpeechRecognition，建议使用 Safari');
+            return false; // 或者返回 hasSupport，但显示警告
+        }
+        
+        return hasSupport;
     }
     
     /**
@@ -3700,7 +3814,16 @@ class SmartControlApp {
      */
     startFreeModeVoiceRecognition() {
         if (!this.checkSpeechRecognitionSupport()) {
-            this.showToast('当前浏览器不支持语音识别，请使用Chrome或Edge浏览器', 'warning');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isChrome = /Chrome/i.test(navigator.userAgent) && !/Edge|OPR|Opera/i.test(navigator.userAgent);
+            const isAndroidChrome = isMobile && isChrome && /Android/i.test(navigator.userAgent);
+            const isIOSChrome = isMobile && isChrome && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            
+            if (isIOSChrome || isAndroidChrome) {
+                this.showToast('Chrome 移动端不支持语音识别，请使用 Safari 浏览器', 'warning');
+            } else {
+                this.showToast('当前浏览器不支持语音识别，请使用 Chrome、Edge 或 Safari 浏览器', 'warning');
+            }
             return;
         }
         
@@ -4065,15 +4188,8 @@ class SmartControlApp {
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
             
-            // 选择中文女声
-            const voices = window.speechSynthesis.getVoices();
-            const chineseFemaleVoice = voices.find(voice => 
-                voice.lang.startsWith('zh') && voice.name.toLowerCase().includes('female')
-            ) || voices.find(voice => voice.lang.startsWith('zh-CN')) || null;
-            
-            if (chineseFemaleVoice) {
-                utterance.voice = chineseFemaleVoice;
-            }
+            // 选择中文女声 - 使用改进的选择逻辑
+            this.selectChineseFemaleVoice(utterance);
             
             utterance.onstart = () => {
                 const broadcastIcon = document.getElementById('freeBroadcastIcon');
@@ -4110,6 +4226,94 @@ class SmartControlApp {
     }
     
     /**
+     * 选择中文女声
+     */
+    selectChineseFemaleVoice(utterance) {
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) {
+            return;
+        }
+        
+        // 优先选择的女性关键词（包括中文和英文）
+        const femaleKeywords = ['female', 'woman', 'girl', '女', '女声', '女性', 'xiaoyun', 'xiaoyan', 'xiaoxiao'];
+        // 排除的男性关键词
+        const maleKeywords = ['male', 'man', 'boy', '男', '男声', '男性', 'xiaogang', 'xiaokun'];
+        
+        // 1. 首先查找中文语言且包含女性关键词的
+        let chineseFemaleVoice = voices.find(voice => {
+            if (!voice.lang || !voice.lang.toLowerCase().startsWith('zh')) return false;
+            const name = voice.name.toLowerCase();
+            // 排除男性
+            if (maleKeywords.some(keyword => name.includes(keyword))) return false;
+            // 包含女性关键词
+            return femaleKeywords.some(keyword => name.includes(keyword));
+        });
+        
+        if (chineseFemaleVoice) {
+            utterance.voice = chineseFemaleVoice;
+            console.log('选择的中文女声:', chineseFemaleVoice.name, chineseFemaleVoice.lang);
+            return;
+        }
+        
+        // 2. 查找所有中文语音，排除明显是男性的
+        const chineseVoices = voices.filter(voice => {
+            if (!voice.lang || !voice.lang.toLowerCase().startsWith('zh')) return false;
+            const name = voice.name.toLowerCase();
+            // 排除男性关键词
+            return !maleKeywords.some(keyword => name.includes(keyword));
+        });
+        
+        if (chineseVoices.length > 0) {
+            // 优先选择名称较短的（通常是默认的女声）
+            chineseFemaleVoice = chineseVoices.sort((a, b) => a.name.length - b.name.length)[0];
+            utterance.voice = chineseFemaleVoice;
+            console.log('选择的中文语音:', chineseFemaleVoice.name, chineseFemaleVoice.lang);
+            return;
+        }
+        
+        // 3. 如果都没有，至少选择一个中文语音
+        const anyChineseVoice = voices.find(voice => 
+            voice.lang && voice.lang.toLowerCase().startsWith('zh')
+        );
+        if (anyChineseVoice) {
+            utterance.voice = anyChineseVoice;
+            console.log('使用默认中文语音:', anyChineseVoice.name, anyChineseVoice.lang);
+        }
+    }
+    
+    /**
+     * 设置AI消息语音的回调
+     */
+    setupAIMessageUtteranceCallbacks(utterance, message) {
+        const messageId = message.timestamp || Date.now();
+        const playBtn = document.querySelector(`.voice-play-btn[data-message-id="${messageId}"]`);
+        
+        utterance.onstart = () => {
+            if (playBtn) {
+                playBtn.classList.add('playing');
+                playBtn.textContent = '🔊';
+            }
+        };
+        
+        utterance.onend = () => {
+            if (playBtn) {
+                playBtn.classList.remove('playing');
+                playBtn.textContent = '🔊';
+            }
+            this.currentAIModeUtterance = null;
+        };
+        
+        utterance.onerror = (event) => {
+            console.error('AI消息语音播放错误:', event.error);
+            if (playBtn) {
+                playBtn.classList.remove('playing');
+                playBtn.textContent = '🔊';
+            }
+            this.currentAIModeUtterance = null;
+        };
+    }
+    
+    /**
      * 播放AI消息的语音
      */
     playAIMessageVoice(message) {
@@ -4133,44 +4337,27 @@ class SmartControlApp {
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
             
-            // 选择中文女声
+            // 选择中文女声 - 改进选择逻辑
             const voices = window.speechSynthesis.getVoices();
-            const chineseFemaleVoice = voices.find(voice => 
-                voice.lang.startsWith('zh') && voice.name.toLowerCase().includes('female')
-            ) || voices.find(voice => voice.lang.startsWith('zh-CN')) || null;
-            
-            if (chineseFemaleVoice) {
-                utterance.voice = chineseFemaleVoice;
+            if (!voices || voices.length === 0) {
+                // 如果语音列表为空，等待加载
+                const onVoicesReady = () => {
+                    this.selectChineseFemaleVoice(utterance);
+                    this.setupAIMessageUtteranceCallbacks(utterance, message);
+                    this.currentAIModeUtterance = utterance;
+                    window.speechSynthesis.speak(utterance);
+                };
+                window.speechSynthesis.onvoiceschanged = onVoicesReady;
+                // 立即检查一次
+                if (window.speechSynthesis.getVoices().length > 0) {
+                    onVoicesReady();
+                }
+                return;
+            } else {
+                this.selectChineseFemaleVoice(utterance);
             }
             
-            // 更新播放按钮状态
-            const messageId = message.timestamp || Date.now();
-            const playBtn = document.querySelector(`.voice-play-btn[data-message-id="${messageId}"]`);
-            
-            utterance.onstart = () => {
-                if (playBtn) {
-                    playBtn.classList.add('playing');
-                    playBtn.textContent = '🔊';
-                }
-            };
-            
-            utterance.onend = () => {
-                if (playBtn) {
-                    playBtn.classList.remove('playing');
-                    playBtn.textContent = '🔊';
-                }
-                this.currentAIModeUtterance = null;
-            };
-            
-            utterance.onerror = (event) => {
-                console.error('AI消息语音播放错误:', event.error);
-                if (playBtn) {
-                    playBtn.classList.remove('playing');
-                    playBtn.textContent = '🔊';
-                }
-                this.currentAIModeUtterance = null;
-            };
-            
+            this.setupAIMessageUtteranceCallbacks(utterance, message);
             this.currentAIModeUtterance = utterance;
             window.speechSynthesis.speak(utterance);
         } catch (error) {

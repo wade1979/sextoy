@@ -12,6 +12,12 @@ class SmartControlApp {
         this.currentMode = null;
         this.setupStep = 1;
         this.isRunning = false;
+        this.freeModeState = 'stopped';
+        this.aiModeState = 'stopped';
+        this.freeModeRunning = false;
+        this.aiModeRunning = false;
+        this.freeModePaused = false;
+        this.aiModePaused = false;
         this.settings = this.loadSettings();
         this.selectedSSID = null;         // 选中的WiFi SSID
         this.selectedPassword = null;     // 输入的WiFi密码
@@ -43,6 +49,14 @@ class SmartControlApp {
         this.currentGreetingUtterance = null;
         this.preferredFemaleVoice = null;
         this.connectionHighlightTimer = null;
+        
+        // 语音识别实例
+        this.freeModeRecognition = null;
+        this.aiModeRecognition = null;
+        this.isFreeModeListening = false;
+        this.isAIModeListening = false;
+        this.currentFreeModeUtterance = null;
+        this.currentAIModeUtterance = null;
         
         this.setupSpeechVoices();
         this.init();
@@ -180,29 +194,50 @@ class SmartControlApp {
         // Voice controls
         const voiceCommandBtn = document.getElementById('voiceCommandBtn');
         if (voiceCommandBtn) {
+            // 更新提示信息
+            voiceCommandBtn.setAttribute('title', '语音指令：快点/慢点/用力/轻点/暂停/继续');
+            voiceCommandBtn.setAttribute('aria-label', '语音指令：快点/慢点/用力/轻点/暂停/继续');
+            
             voiceCommandBtn.addEventListener('click', () => {
-                this.voiceInteraction.showVoiceCommands();
+                if (this.isFreeModeListening) {
+                    this.stopFreeModeVoiceRecognition();
+                } else {
+                    this.startFreeModeVoiceRecognition();
+                }
             });
         }
 
-        const stopBtn = document.getElementById('stopBtn');
-        if (stopBtn) {
-            stopBtn.addEventListener('click', () => {
-                if (this.freeModeRunning) {
-                    this.stopFreeMode();
+        const playPauseBtn = document.getElementById('freePlayPauseBtn');
+        if (playPauseBtn) {
+            playPauseBtn.addEventListener('click', () => {
+                if (this.freeModeState === 'running') {
+                    this.pauseFreeMode();
                 } else {
                     this.startFreeMode();
                 }
+            });
+        }
+
+        const stopBtn = document.getElementById('freeStopBtn');
+        if (stopBtn) {
+            stopBtn.addEventListener('click', () => {
+                this.stopFreeMode();
             });
         }
     }
 
     // AI Mode Listeners
     setupAIModeListeners() {
-        const aiVoiceCommandBtn = document.getElementById('aiVoiceCommandBtn');
-        if (aiVoiceCommandBtn) {
-            aiVoiceCommandBtn.addEventListener('click', () => {
-                this.voiceInteraction.showVoiceCommands();
+        // 移除AI模式的麦克风按钮监听器（AI模式不再需要语音输入）
+
+        const aiPlayPauseBtn = document.getElementById('aiPlayPauseBtn');
+        if (aiPlayPauseBtn) {
+            aiPlayPauseBtn.addEventListener('click', () => {
+                if (this.aiModeState === 'running') {
+                    this.pauseAIMode();
+                } else {
+                    this.startAIMode();
+                }
             });
         }
 
@@ -397,23 +432,77 @@ class SmartControlApp {
                 this.renderScenarios();
                 break;
             case 'freeMode':
-                this.updateModeStatus(this.freeModeRunning);
-                this.updateFreeModeButton();
-                if (this.freeModeRunning && this.waveformAnimation) {
-                    this.waveformAnimation.start();
-                } else if (this.waveformAnimation) {
-                    this.waveformAnimation.stop();
+                this.updateModeStatus('free', this.freeModeState);
+                this.updateFreeModeControls();
+                // 请求麦克风权限
+                this.requestMicrophonePermission();
+                if (this.freeModeState === 'running') {
+                    // 延迟初始化波形图，确保DOM已准备好
+                    setTimeout(() => {
+                        // 停止之前的动画（如果有）
+                        if (this.waveformAnimationId) {
+                            cancelAnimationFrame(this.waveformAnimationId);
+                            this.waveformAnimationId = null;
+                        }
+                        
+                        // 重新初始化波形图
+                        this.initWaveform();
+                        if (this.waveformCanvas && this.waveformCtx) {
+                            console.log('[Free Mode Screen Enter] Waveform initialized, starting animation');
+                            this.startWaveformAnimation();
+                        } else {
+                            console.warn('[Free Mode Screen Enter] Waveform canvas not found, retrying...');
+                            setTimeout(() => {
+                                this.initWaveform();
+                                if (this.waveformCanvas && this.waveformCtx) {
+                                    this.startWaveformAnimation();
+                                }
+                            }, 200);
+                        }
+                    }, 150);
+                } else {
+                    // 如果处于暂停或停止状态，停止波形图
+                    this.stopWaveformAnimation();
                 }
                 break;
             case 'aiMode':
-                // 如果还未启动，则启动AI模式
-                if (!this.aiModeRunning) {
+                if (this.aiModeState === 'stopped') {
                     this.startAIMode();
                 } else {
-                    // If already running, just update the UI to reflect current selections
-                    setTimeout(() => {
-                        this.updateAIInfo();
-                    }, 100);
+                    this.updateModeStatus('ai', this.aiModeState);
+                    this.updateAIControls();
+                    if (this.aiModeState === 'running') {
+                        // 延迟初始化波形图，确保DOM已准备好
+                        setTimeout(() => {
+                            // 停止之前的动画（如果有）
+                            if (this.waveformAnimationId) {
+                                cancelAnimationFrame(this.waveformAnimationId);
+                                this.waveformAnimationId = null;
+                            }
+                            
+                            // 重新初始化波形图
+                            this.initWaveform();
+                            if (this.waveformCanvas && this.waveformCtx) {
+                                console.log('[AI Mode Screen Enter] Waveform initialized, starting animation');
+                                this.startWaveformAnimation();
+                            } else {
+                                console.warn('[AI Mode Screen Enter] Waveform canvas not found, retrying...');
+                                setTimeout(() => {
+                                    this.initWaveform();
+                                    if (this.waveformCanvas && this.waveformCtx) {
+                                        this.startWaveformAnimation();
+                                    }
+                                }, 200);
+                            }
+                        }, 150);
+                        
+                        setTimeout(() => {
+                            this.updateAIInfo();
+                        }, 100);
+                    } else {
+                        // 如果处于暂停或停止状态，停止波形图
+                        this.stopWaveformAnimation();
+                    }
                 }
                 break;
         }
@@ -840,11 +929,16 @@ class SmartControlApp {
     setupQuickConnect() {
         const tokenInput = document.getElementById('deviceTokenInput');
         const submitBtn = document.getElementById('deviceTokenSubmit');
-        const disconnectBtn = document.getElementById('deviceDisconnectBtn');
 
         if (!tokenInput || !submitBtn) return;
 
         const handleSubmit = () => {
+            if (this.isDeviceConnected()) {
+                this.markDeviceDisconnected();
+                this.showToast('已断开设备连接', 'info');
+                return;
+            }
+
             const value = tokenInput.value.trim();
             if (!value) {
                 this.showToast('请输入设备 Token', 'warning');
@@ -873,12 +967,6 @@ class SmartControlApp {
             }
         });
 
-        if (disconnectBtn) {
-            disconnectBtn.addEventListener('click', () => {
-                this.markDeviceDisconnected();
-                this.showToast('已断开设备连接', 'info');
-            });
-        }
     }
 
     refreshQuickConnectUI() {
@@ -887,7 +975,6 @@ class SmartControlApp {
 
         const tokenInput = document.getElementById('deviceTokenInput');
         const submitBtn = document.getElementById('deviceTokenSubmit');
-        const disconnectBtn = document.getElementById('deviceDisconnectBtn');
         const statusText = document.getElementById('quickConnectStatus');
 
         const connected = this.isDeviceConnected();
@@ -898,11 +985,7 @@ class SmartControlApp {
         }
 
         if (submitBtn) {
-            submitBtn.textContent = connected ? '更新 Token' : '连接设备';
-        }
-
-        if (disconnectBtn) {
-            disconnectBtn.style.display = connected ? 'inline-flex' : 'none';
+            submitBtn.textContent = connected ? '断开' : '连接设备';
         }
 
         if (statusText) {
@@ -1425,7 +1508,7 @@ class SmartControlApp {
         if (!characterGrid) return;
 
         characterGrid.innerHTML = Object.values(CHARACTERS).map(character => {
-            const videoPath = character.videoPath || 'resource/role_girlfriend.mov';
+            const videoPath = character.videoPath || 'resource/ai/girlfriend/video.mov';
             const age = character.age || 21;
             const displayName = character.name || character.englishName || 'Unknown';
             const style = character.style || '';
@@ -2023,7 +2106,7 @@ class SmartControlApp {
         if (!characterGrid) return;
 
         characterGrid.innerHTML = Object.values(CHARACTERS).map(character => {
-            const videoPath = character.videoPath || 'resource/role_girlfriend.mov';
+        const videoPath = character.videoPath || 'resource/ai/girlfriend/video.mov';
             const age = character.age || 21;
             const displayName = character.name || character.englishName || 'Unknown';
             const style = character.style || '';
@@ -2245,59 +2328,151 @@ class SmartControlApp {
 
     // Free Mode
     startFreeMode() {
-        if (this.freeModeRunning) return;
+        console.log(`[startFreeMode] 当前状态: ${this.freeModeState}`);
+        if (this.freeModeState === 'running') {
+            console.log(`[startFreeMode] 已经是运行状态，直接返回`);
+            return;
+        }
 
+        const wasPaused = this.freeModeState === 'paused';
+        console.log(`[startFreeMode] 是否从暂停状态恢复: ${wasPaused}`);
+
+        this.freeModeState = 'running';
         this.freeModeRunning = true;
+        this.freeModePaused = false;
         this.aiModeRunning = false;
         this.isRunning = true;
 
-        if (this.waveformAnimation) {
-            this.waveformAnimation.start();
-        }
         this.voiceInteraction.setContext(null, null);
 
-        this.updateModeStatus(true);
-        this.updateFreeModeButton();
+        this.updateModeStatus('free', 'running');
+        this.updateFreeModeControls();
 
-        this.sendCommand(DeviceCommands.startFreeMode());
-        this.showToast('设备已启动', 'success');
+        // 延迟初始化波形图，确保DOM已准备好
+        setTimeout(() => {
+            // 停止之前的动画（如果有）
+            if (this.waveformAnimationId) {
+                cancelAnimationFrame(this.waveformAnimationId);
+                this.waveformAnimationId = null;
+            }
+            
+            // 重新初始化波形图
+            this.initWaveform();
+            if (this.waveformCanvas && this.waveformCtx) {
+                console.log('[Free Mode] Waveform initialized, starting animation');
+                this.startWaveformAnimation();
+            } else {
+                console.warn('[Free Mode] Waveform canvas not found, retrying...');
+                // 如果canvas不存在，再试一次
+                setTimeout(() => {
+                    this.initWaveform();
+                    if (this.waveformCanvas && this.waveformCtx) {
+                        this.startWaveformAnimation();
+                    } else {
+                        console.error('[Free Mode] Failed to initialize waveform after retry');
+                    }
+                }, 200);
+            }
+        }, 100);
+
+        const command = wasPaused && DeviceCommands.resumeFreeMode
+            ? DeviceCommands.resumeFreeMode()
+            : DeviceCommands.startFreeMode();
+        this.sendCommand(command);
+        this.showToast(wasPaused ? '设备已继续' : '设备已启动', 'success');
+        console.log(`[startFreeMode] 自由模式已${wasPaused ? '继续' : '启动'}`);
     }
 
-    stopFreeMode() {
-        if (!this.freeModeRunning) return;
+    pauseFreeMode() {
+        console.log(`[pauseFreeMode] 当前状态: ${this.freeModeState}`);
+        if (this.freeModeState !== 'running') {
+            console.log(`[pauseFreeMode] 当前不是运行状态，无法暂停`);
+            return;
+        }
 
+        this.freeModeState = 'paused';
         this.freeModeRunning = false;
+        this.freeModePaused = true;
         this.isRunning = false;
 
         if (this.waveformAnimation) {
             this.waveformAnimation.stop();
+        } else {
+            this.stopWaveformAnimation();
+            this.waveformCanvas = null;
+            this.waveformCtx = null;
         }
 
-        this.updateModeStatus(false);
-        this.updateFreeModeButton();
+        this.updateModeStatus('free', 'paused');
+        this.updateFreeModeControls();
 
-        this.sendCommand(DeviceCommands.stop());
+        const command = DeviceCommands.pauseFreeMode
+            ? DeviceCommands.pauseFreeMode()
+            : DeviceCommands.stopFreeMode();
+        this.sendCommand(command);
+        this.showToast('设备已暂停', 'info');
+        console.log(`[pauseFreeMode] 自由模式已暂停，状态: ${this.freeModeState}`);
+    }
+
+    stopFreeMode() {
+        if (this.freeModeState === 'stopped') return;
+
+        this.freeModeState = 'stopped';
+        this.freeModeRunning = false;
+        this.freeModePaused = false;
+        this.isRunning = false;
+
+        // 停止语音识别
+        this.stopFreeModeVoiceRecognition();
+
+        if (this.waveformAnimation) {
+            this.waveformAnimation.stop();
+        } else {
+            this.stopWaveformAnimation();
+            this.waveformCanvas = null;
+            this.waveformCtx = null;
+        }
+
+        this.updateModeStatus('free', 'stopped');
+        this.updateFreeModeControls();
+
+        const command = DeviceCommands.stopFreeMode
+            ? DeviceCommands.stopFreeMode()
+            : DeviceCommands.stop();
+        this.sendCommand(command);
         this.showToast('设备已停止', 'info');
     }
 
-    updateFreeModeButton() {
-        const stopBtn = document.getElementById('stopBtn');
-        if (!stopBtn) return;
+    updateFreeModeControls() {
+        const playPauseBtn = document.getElementById('freePlayPauseBtn');
+        const playPauseIcon = document.getElementById('freePlayPauseIcon');
+        const stopBtn = document.getElementById('freeStopBtn');
 
-        const icon = stopBtn.querySelector('.voice-icon');
-        const label = stopBtn.querySelector('span');
-
-        if (icon) {
-            icon.textContent = this.freeModeRunning ? '⏹️' : '▶️';
+        if (playPauseBtn && playPauseIcon) {
+            if (this.freeModeState === 'running') {
+                playPauseIcon.textContent = '⏸️';
+                playPauseBtn.title = '暂停';
+                playPauseBtn.setAttribute('aria-label', '暂停');
+            } else {
+                playPauseIcon.textContent = '▶️';
+                const title = this.freeModeState === 'paused' ? '继续' : '开始';
+                playPauseBtn.title = title;
+                playPauseBtn.setAttribute('aria-label', title);
+            }
         }
 
-        if (label) {
-            label.textContent = this.freeModeRunning ? '停止' : '启动';
+        if (stopBtn) {
+            const isStopped = this.freeModeState === 'stopped';
+            stopBtn.disabled = isStopped;
+            stopBtn.title = '停止';
+            stopBtn.setAttribute('aria-label', '停止');
         }
     }
 
     // AI Mode
     startAIMode() {
+        if (this.aiModeState === 'running') return;
+
         if (!this.currentCharacter || !this.currentScenario) {
             this.showToast('请先选择角色和场景', 'warning');
             return;
@@ -2311,45 +2486,145 @@ class SmartControlApp {
             fullScenario: this.currentScenario
         });
 
+        const wasPaused = this.aiModeState === 'paused';
+
+        this.aiModeState = 'running';
         this.aiModeRunning = true;
+        this.aiModePaused = false;
         this.freeModeRunning = false;
+        this.freeModeState = 'stopped';
         this.isRunning = true;
         this.voiceInteraction.setContext(this.currentCharacter, this.currentScenario);
-        
+
         // Force UI update after a short delay to ensure DOM is ready
         setTimeout(() => {
             this.updateAIInfo();
         }, 100);
+
+        // 延迟初始化波形图，确保DOM已准备好
+        setTimeout(() => {
+            // 停止之前的动画（如果有）
+            if (this.waveformAnimationId) {
+                cancelAnimationFrame(this.waveformAnimationId);
+                this.waveformAnimationId = null;
+            }
+            
+            // 重新初始化波形图
+            this.initWaveform();
+            if (this.waveformCanvas && this.waveformCtx) {
+                console.log('[AI Mode] Waveform initialized, starting animation');
+                this.startWaveformAnimation();
+            } else {
+                console.warn('[AI Mode] Waveform canvas not found, retrying...');
+                // 如果canvas不存在，再试一次
+                setTimeout(() => {
+                    this.initWaveform();
+                    if (this.waveformCanvas && this.waveformCtx) {
+                        this.startWaveformAnimation();
+                    } else {
+                        console.error('[AI Mode] Failed to initialize waveform after retry');
+                    }
+                }, 200);
+            }
+        }, 100);
         
-        // 初始化并启动波形图
-        this.initWaveform();
-        this.startWaveformAnimation();
-        
-        // Start scenario playback
         this.voiceInteraction.startScenarioPlayback();
-        
-        // Update status
-        this.updateModeStatus(true);
-        
-        // Send AI mode start command
-        this.sendCommand(DeviceCommands.startAIMode(this.currentCharacter.id, this.currentScenario.id));
+
+        this.updateModeStatus('ai', 'running');
+        this.updateAIControls();
+
+        const command = wasPaused && DeviceCommands.resumeAIMode
+            ? DeviceCommands.resumeAIMode()
+            : DeviceCommands.startAIMode(this.currentCharacter.id, this.currentScenario.id);
+        this.sendCommand(command);
+
+        if (wasPaused) {
+            this.showToast('AI模式已继续', 'success');
+        } else {
+            this.showToast('AI模式已启动', 'success');
+        }
+    }
+
+    pauseAIMode() {
+        if (this.aiModeState !== 'running') return;
+
+        this.aiModeState = 'paused';
+        this.aiModeRunning = false;
+        this.aiModePaused = true;
+        this.isRunning = false;
+
+        this.voiceInteraction.stopScenarioPlayback();
+        if (this.waveformAnimation) {
+            this.waveformAnimation.stop();
+        } else {
+            this.stopWaveformAnimation();
+        }
+
+        this.updateModeStatus('ai', 'paused');
+        this.updateAIControls();
+
+        const command = DeviceCommands.pauseAIMode
+            ? DeviceCommands.pauseAIMode()
+            : DeviceCommands.stopAIMode();
+        this.sendCommand(command);
+        this.showToast('AI模式已暂停', 'info');
     }
 
     stopAIMode() {
+        if (this.aiModeState === 'stopped') return;
+
+        this.aiModeState = 'stopped';
         this.aiModeRunning = false;
+        this.aiModePaused = false;
         this.isRunning = false;
         this.voiceInteraction.stopScenarioPlayback();
         
+        // 停止语音识别
+        if (this.aiModeRecognition) {
+            this.stopVoiceRecordingDemo(true);
+        }
+        
         // 停止波形图动画
-        this.stopWaveformAnimation();
+        if (this.waveformAnimation) {
+            this.waveformAnimation.stop();
+        } else {
+            this.stopWaveformAnimation();
+        }
         
         // Update status
-        this.updateModeStatus(false);
+        this.updateModeStatus('ai', 'stopped');
+        this.updateAIControls();
         
         // Send stop command
         this.sendCommand(DeviceCommands.stopAIMode());
         
         this.showToast('AI模式已停止', 'info');
+    }
+
+    updateAIControls() {
+        const playPauseBtn = document.getElementById('aiPlayPauseBtn');
+        const playPauseIcon = document.getElementById('aiPlayPauseIcon');
+        const stopBtn = document.getElementById('aiStopBtn');
+
+        if (playPauseBtn && playPauseIcon) {
+            if (this.aiModeState === 'running') {
+                playPauseIcon.textContent = '⏸️';
+                playPauseBtn.title = '暂停';
+                playPauseBtn.setAttribute('aria-label', '暂停');
+            } else {
+                playPauseIcon.textContent = '▶️';
+                const title = this.aiModeState === 'paused' ? '继续' : '开始';
+                playPauseBtn.title = title;
+                playPauseBtn.setAttribute('aria-label', title);
+            }
+        }
+
+        if (stopBtn) {
+            const isStopped = this.aiModeState === 'stopped';
+            stopBtn.disabled = isStopped;
+            stopBtn.title = '停止';
+            stopBtn.setAttribute('aria-label', '停止');
+        }
     }
 
     updateAIInfo() {
@@ -2379,17 +2654,63 @@ class SmartControlApp {
 
     // 波形图相关方法
     initWaveform() {
-        const canvas = document.getElementById('waveformCanvas');
-        if (!canvas) return;
+        // 根据当前屏幕查找canvas（自由模式或AI模式）
+        // 先检查当前可见的screen
+        const freeModeScreen = document.getElementById('freeMode');
+        const aiModeScreen = document.getElementById('aiMode');
+        
+        let canvas = null;
+        // 优先查找当前可见的screen中的canvas
+        if (freeModeScreen && freeModeScreen.classList.contains('active')) {
+            canvas = freeModeScreen.querySelector('#waveformCanvas');
+        } else if (aiModeScreen && aiModeScreen.classList.contains('active')) {
+            canvas = aiModeScreen.querySelector('#waveformCanvas');
+        }
+        
+        // 如果没找到，尝试直接查找（作为后备）
+        if (!canvas) {
+            canvas = document.getElementById('waveformCanvas');
+        }
+        
+        if (!canvas) {
+            console.warn('[Waveform] Canvas element not found in current screen');
+            return;
+        }
+        
+        // 检查canvas是否可见
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+            console.warn('[Waveform] Canvas is not visible, may need to wait for screen transition');
+        }
         
         this.waveformCanvas = canvas;
         this.waveformCtx = canvas.getContext('2d');
         
+        if (!this.waveformCtx) {
+            console.error('[Waveform] Failed to get canvas context');
+            return;
+        }
+        
         // 设置Canvas尺寸
         const container = canvas.parentElement;
-        const rect = container.getBoundingClientRect();
-        canvas.width = rect.width - 24; // 减去padding
-        canvas.height = rect.height - 24;
+        if (!container) {
+            console.warn('[Waveform] Canvas container not found');
+            return;
+        }
+        
+        const containerRect = container.getBoundingClientRect();
+        // 如果container不可见，使用默认尺寸
+        const width = containerRect.width > 0 
+            ? Math.max(100, containerRect.width - 24) 
+            : 800; // 默认宽度
+        const height = containerRect.height > 0 
+            ? Math.max(50, containerRect.height - 24) 
+            : 200; // 默认高度
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        console.log(`[Waveform] Initialized canvas: ${width}x${height}, container: ${containerRect.width}x${containerRect.height}`);
         
         // 重置数据
         this.waveformData = [];
@@ -2407,8 +2728,25 @@ class SmartControlApp {
     }
 
     startWaveformAnimation() {
-        if (!this.waveformCanvas || this.waveformAnimationId) return;
+        // 如果已经有动画在运行，先停止
+        if (this.waveformAnimationId) {
+            cancelAnimationFrame(this.waveformAnimationId);
+            this.waveformAnimationId = null;
+        }
         
+        // 如果Canvas不存在，尝试初始化
+        if (!this.waveformCanvas || !this.waveformCtx) {
+            console.log('[Waveform] Canvas not found, initializing...');
+            this.initWaveform();
+        }
+        
+        if (!this.waveformCanvas || !this.waveformCtx) {
+            console.warn('[Waveform] Canvas not found after initialization, cannot start animation');
+            return;
+        }
+        
+        console.log('[Waveform] Starting animation');
+        // 开始绘制波形图
         this.drawWaveform();
     }
 
@@ -2450,7 +2788,19 @@ class SmartControlApp {
     }
 
     drawWaveform() {
-        if (!this.waveformCtx || !this.waveformCanvas || !this.isRunning) return;
+        // 检查是否在AI模式或自由模式下运行
+        const isAIModeRunning = this.aiModeState === 'running';
+        const isFreeModeRunning = this.freeModeState === 'running';
+        const shouldDraw = isAIModeRunning || isFreeModeRunning;
+        
+        if (!this.waveformCtx || !this.waveformCanvas || !shouldDraw) {
+            // 如果不在运行状态，停止动画
+            if (this.waveformAnimationId) {
+                cancelAnimationFrame(this.waveformAnimationId);
+                this.waveformAnimationId = null;
+            }
+            return;
+        }
         
         // 更新数据
         this.updateWaveform();
@@ -2557,15 +2907,21 @@ class SmartControlApp {
 
     // Command Handling
     sendCommand(command) {
+        // 原型阶段：静默处理，不显示设备未连接提示
+        // 如果需要真实的设备连接，可以在后续版本中恢复检查
         if (!this.mqttClient.isConnected) {
-            this.showToast('设备未连接', 'warning');
+            // 原型阶段：仅记录日志，不显示提示
+            console.log('[Command] MQTT未连接，命令已记录:', command);
+            // 可以在这里模拟命令处理，或者保存到队列中
             return;
         }
 
         try {
             this.mqttClient.sendCommand(command);
         } catch (error) {
-            this.showToast('发送命令失败', 'error');
+            console.error('[Command] 发送命令失败:', error);
+            // 原型阶段：不显示错误提示，避免干扰用户体验
+            // this.showToast('发送命令失败', 'error');
         }
     }
 
@@ -2610,21 +2966,35 @@ class SmartControlApp {
         }
     }
 
-    updateModeStatus(isRunning) {
-        const statusElements = document.querySelectorAll('.mode-status .status-indicator');
-        const statusTexts = document.querySelectorAll('.mode-status .status-text');
+    updateModeStatus(mode, state) {
+        const screenId = mode === 'ai' ? 'aiMode' : 'freeMode';
+        let statusContainer = document.getElementById(screenId)?.querySelector('.mode-status');
+        if (!statusContainer) {
+            statusContainer = document.querySelector(`.mode-status[data-mode="${mode}"]`);
+        }
+        if (!statusContainer) return;
 
-        statusElements.forEach(indicator => {
-            if (isRunning) {
-                indicator.className = 'status-indicator running';
-            } else {
-                indicator.className = 'status-indicator offline';
-            }
-        });
+        const indicator = statusContainer.querySelector('.status-indicator');
+        const text = statusContainer.querySelector('.status-text');
 
-        statusTexts.forEach(text => {
-            text.textContent = isRunning ? '运行中' : '已停止';
-        });
+        if (!indicator || !text) return;
+
+        indicator.classList.remove('running', 'paused', 'offline');
+
+        let className = 'offline';
+        let statusText = '已停止';
+
+        if (state === 'running') {
+            className = 'running';
+            statusText = '运行中';
+        } else if (state === 'paused') {
+            className = 'paused';
+            statusText = '暂停中';
+        }
+
+        indicator.classList.add(className);
+        text.textContent = statusText;
+        statusContainer.setAttribute('data-state', state);
     }
 
     showToast(message, type = 'info') {
@@ -2787,12 +3157,8 @@ class SmartControlApp {
             voiceStopBtn.addEventListener('click', () => this.stopVoiceRecordingDemo());
         }
         
-        if (this.chatElements.mediaClose) {
-            this.chatElements.mediaClose.addEventListener('click', () => {
-                this.chatMediaPreviewEnabled = false;
-                this.updateMediaPreview(true);
-            });
-        }
+        // 媒体预览浮层不再使用，确保保持隐藏
+        this.updateMediaPreview(true);
     }
     
     /**
@@ -2888,14 +3254,39 @@ class SmartControlApp {
             const recentMessages = this.chatMessages.slice(-this.chatRecentLimit);
             elements.recentMessages.innerHTML = recentMessages.map(msg => this.renderVoiceMessage(msg, characterImageUrl)).join('');
             elements.recentMessages.scrollTop = elements.recentMessages.scrollHeight;
+            // 绑定音频播放按钮事件
+            this.setupVoicePlayButtons(elements.recentMessages);
         }
         
         if (elements.historyMessages) {
             elements.historyMessages.innerHTML = this.chatMessages.map(msg => this.renderVoiceMessage(msg, characterImageUrl)).join('');
             elements.historyMessages.scrollTop = elements.historyMessages.scrollHeight;
+            // 绑定音频播放按钮事件
+            this.setupVoicePlayButtons(elements.historyMessages);
         }
         
         this.updateMediaPreview();
+    }
+    
+    /**
+     * 设置音频播放按钮事件监听
+     */
+    setupVoicePlayButtons(container) {
+        if (!container) return;
+        
+        container.querySelectorAll('.voice-play-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const messageId = btn.getAttribute('data-message-id');
+                const message = this.chatMessages.find(msg => 
+                    (msg.timestamp || '').toString() === messageId || 
+                    (msg.timestamp || Date.now()).toString() === messageId
+                );
+                if (message) {
+                    this.playAIMessageVoice(message);
+                }
+            });
+        });
     }
     
     /**
@@ -2908,8 +3299,12 @@ class SmartControlApp {
         
         const durationDisplay = message.duration ? `<span>${message.duration}"</span>` : '';
         
+        // AI消息添加音频播放按钮
+        const voicePlayBtn = !isUser && (message.voiceText || message.text) ? 
+            `<button class="voice-play-btn" data-message-id="${message.timestamp || Date.now()}" title="播放语音">🔊</button>` : '';
+        
         return `
-            <div class="voice-message ${isUser ? 'user' : 'ai'}">
+            <div class="voice-message ${isUser ? 'user' : 'ai'}" data-message-id="${message.timestamp || Date.now()}">
                 <div class="voice-avatar"${avatarStyle}></div>
                 <div class="voice-bubble">
                     <div class="voice-waveform">${this.renderVoiceBars()}</div>
@@ -2918,6 +3313,7 @@ class SmartControlApp {
                     <div class="voice-meta">
                         ${durationDisplay}
                         <span>${message.timestamp}</span>
+                        ${voicePlayBtn}
                         ${message.hasRhythm ? '<span class="rhythm-indicator">🌊</span>' : ''}
                     </div>
                 </div>
@@ -2934,10 +3330,11 @@ class SmartControlApp {
      */
     renderMediaContent(media) {
         if (media.type === 'image') {
-            return `<div class="message-media"><img src="${media.url}" alt="图片" onclick="window.open('${media.url}', '_blank')"></div>`;
+            return `<div class="message-media"><img src="${media.url}" alt="图片" loading="lazy" onclick="window.open('${media.url}', '_blank')"></div>`;
         }
         if (media.type === 'video') {
-            return `<div class="message-media"><video src="${media.url}" controls preload="none" poster="${media.poster || ''}"></video></div>`;
+            const posterAttr = media.poster ? ` poster="${media.poster}"` : '';
+            return `<div class="message-media"><video src="${media.url}" controls preload="metadata"${posterAttr} playsinline muted></video></div>`;
         }
         return '';
     }
@@ -2950,24 +3347,9 @@ class SmartControlApp {
         const contentContainer = this.chatElements?.mediaContent;
         if (!previewContainer || !contentContainer) return;
         
-        if (forceHide) {
-            this.chatMediaPreviewEnabled = false;
-        }
-        
-        if (!this.chatMediaPreviewEnabled) {
-            previewContainer.classList.remove('active');
-            contentContainer.innerHTML = '';
-            return;
-        }
-        
-        const latestMediaMessage = [...this.chatMessages].reverse().find(msg => msg.media);
-        if (latestMediaMessage?.media) {
-            contentContainer.innerHTML = this.renderMediaPreview(latestMediaMessage.media);
-            previewContainer.classList.add('active');
-        } else {
-            previewContainer.classList.remove('active');
-            contentContainer.innerHTML = '';
-        }
+        this.chatMediaPreviewEnabled = false;
+        previewContainer.classList.remove('active');
+        contentContainer.innerHTML = '';
     }
     
     renderMediaPreview(media) {
@@ -3037,6 +3419,13 @@ class SmartControlApp {
             if (aiReply.hasRhythm) {
                 console.log('[Chat] AI调整节奏指令');
             }
+            
+            // 自动播放AI回复的语音
+            if (aiReply.voiceText && this.checkSpeechSynthesisSupport()) {
+                setTimeout(() => {
+                    this.playAIMessageVoice(aiReply);
+                }, 500); // 延迟500ms播放，让消息先显示
+            }
         }, 1000);
     }
     
@@ -3051,10 +3440,6 @@ class SmartControlApp {
         if (!message.transcript) {
             message.transcript = message.text;
         }
-        if (message.media) {
-            this.chatMediaPreviewEnabled = true;
-        }
-        
         this.chatMessages.push(message);
         this.renderChatViews();
         
@@ -3072,7 +3457,13 @@ class SmartControlApp {
     startVoiceRecordingDemo() {
         if (this.chatRecording) return;
         
+        if (!this.checkSpeechRecognitionSupport()) {
+            this.showToast('当前浏览器不支持语音识别，请使用Chrome或Edge浏览器', 'warning');
+            return;
+        }
+        
         this.chatRecording = true;
+        this.isAIModeListening = true;
         this.updateChatStatus('正在聆听，请继续说话…');
         
         if (this.chatRecordingTimer) {
@@ -3083,13 +3474,74 @@ class SmartControlApp {
         this.chatElements?.voiceRecordBtn?.classList.add('recording');
         this.chatElements?.voiceStopBtn?.classList.add('active');
         
-        this.chatRecordingTimer = setTimeout(() => {
-            this.stopVoiceRecordingDemo();
-        }, 5000);
+        try {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.aiModeRecognition = new SpeechRecognition();
+            
+            this.aiModeRecognition.lang = 'zh-CN';
+            this.aiModeRecognition.continuous = false;
+            this.aiModeRecognition.interimResults = true;
+            
+            this.aiModeRecognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // 实时显示临时结果
+                if (interimTranscript) {
+                    this.updateChatStatus(`正在识别: ${interimTranscript}`);
+                }
+                
+                // 最终结果
+                if (finalTranscript) {
+                    this.stopVoiceRecordingDemo(false, finalTranscript.trim());
+                }
+            };
+            
+            this.aiModeRecognition.onerror = (event) => {
+                console.error('AI模式语音识别错误:', event.error);
+                if (event.error === 'no-speech') {
+                    this.updateChatStatus('未检测到语音，请重试');
+                    setTimeout(() => {
+                        this.stopVoiceRecordingDemo(true);
+                    }, 2000);
+                } else if (event.error === 'network') {
+                    this.showToast('网络错误，请检查网络连接', 'error');
+                    this.stopVoiceRecordingDemo(true);
+                } else {
+                    this.showToast('语音识别出错: ' + event.error, 'error');
+                    this.stopVoiceRecordingDemo(true);
+                }
+            };
+            
+            this.aiModeRecognition.onend = () => {
+                if (this.chatRecording && !this.aiModeRecognition.finalTranscript) {
+                    // 如果没有最终结果，可能是超时或错误
+                    this.updateChatStatus('等待语音交互');
+                }
+            };
+            
+            this.aiModeRecognition.start();
+        } catch (error) {
+            console.error('初始化AI模式语音识别失败:', error);
+            this.showToast('无法启动语音识别，请检查麦克风权限', 'error');
+            this.chatRecording = false;
+            this.isAIModeListening = false;
+            this.chatElements?.voiceRecordBtn?.classList.remove('recording');
+            this.chatElements?.voiceStopBtn?.classList.remove('active');
+        }
     }
     
-    stopVoiceRecordingDemo(forceCancel = false) {
-        if (!this.chatRecording && !forceCancel) {
+    stopVoiceRecordingDemo(forceCancel = false, transcript = null) {
+        if (!this.chatRecording && !forceCancel && !transcript) {
             this.showToast('当前没有进行中的录音', 'info');
             return;
         }
@@ -3101,19 +3553,33 @@ class SmartControlApp {
         
         const wasRecording = this.chatRecording;
         this.chatRecording = false;
+        this.isAIModeListening = false;
+        
+        if (this.aiModeRecognition) {
+            try {
+                this.aiModeRecognition.stop();
+            } catch (e) {
+                console.error('停止AI模式语音识别失败:', e);
+            }
+            this.aiModeRecognition = null;
+        }
         
         this.chatElements?.voiceRecordBtn?.classList.remove('recording');
         this.chatElements?.voiceStopBtn?.classList.remove('active');
         
-        if (forceCancel || !wasRecording) {
+        if (forceCancel) {
             this.updateChatStatus('等待语音交互');
             return;
         }
         
-        const suggested = this.currentCharacter?.name ? `想你的模样 👀` : '想你了';
-        const transcript = prompt('请输入本次语音识别后的文本（演示）', suggested);
         if (transcript && transcript.trim()) {
             this.sendChatMessage(transcript.trim(), { source: 'voice' });
+        } else if (wasRecording && !transcript) {
+            // 如果没有识别到文本，提示用户
+            this.updateChatStatus('未识别到语音，请重试');
+            setTimeout(() => {
+                this.updateChatStatus('等待语音交互');
+            }, 2000);
         } else {
             this.updateChatStatus('等待语音交互');
         }
@@ -3134,8 +3600,10 @@ class SmartControlApp {
         // 关键词匹配
         if (text.includes('你好') || text.includes('hello') || text.includes('hi')) {
             replyData = this.getRandomReply(autoReplies.greetings);
-        } else if (text.includes('想你的模样') || text.includes('看看你') || text.includes('照片') || text.includes('视频')) {
-            replyData = this.getRandomReply(autoReplies.see_you);
+        } else if (text.includes('表情') || text.includes('视频')) {
+            replyData = this.getRandomReply(autoReplies.see_you_video);
+        } else if (text.includes('想你的模样') || text.includes('看看你') || text.includes('照片')) {
+            replyData = this.getRandomReply(autoReplies.see_you_photo);
         } else if (text.includes('想') || text.includes('miss')) {
             replyData = this.getRandomReply(autoReplies.miss);
         } else if (text.includes('刺激') || text.includes('exciting') || text.includes('快点') || text.includes('快一点')) {
@@ -3159,7 +3627,30 @@ class SmartControlApp {
         if (replyData.needMedia) {
             const characterMedia = this.getCharacterMedia();
             if (characterMedia && characterMedia.length > 0) {
-                const randomMedia = characterMedia[Math.floor(Math.random() * characterMedia.length)];
+                const preferredType = replyData.mediaType;
+                let mediaPool = characterMedia;
+                
+                if (preferredType) {
+                    const filtered = characterMedia.filter(item => item.type === preferredType);
+                    if (filtered.length > 0) {
+                        mediaPool = filtered;
+                    }
+                }
+                
+                const selected = mediaPool[Math.floor(Math.random() * mediaPool.length)];
+                const randomMedia = { ...selected };
+                
+                if (randomMedia.type === 'video' && !randomMedia.poster) {
+                    const fallbackImage = characterMedia.find(item => item.type === 'image');
+                    if (fallbackImage) {
+                        randomMedia.poster = fallbackImage.url;
+                    } else if (this.currentCharacter?.imagePath) {
+                        randomMedia.poster = this.currentCharacter.imagePath;
+                    } else if (this.currentCharacter?.backgroundImage) {
+                        randomMedia.poster = this.currentCharacter.backgroundImage;
+                    }
+                }
+                
                 replyData.media = randomMedia;
             }
         }
@@ -3169,7 +3660,8 @@ class SmartControlApp {
             text: replyData.text || '嗯嗯，我明白了~',
             timestamp: timestamp,
             hasRhythm: replyData.hasRhythm || false,
-            media: replyData.media || null
+            media: replyData.media || null,
+            voiceText: replyData.text || '嗯嗯，我明白了~' // 用于TTS播放的文本
         };
     }
     
@@ -3187,6 +3679,503 @@ class SmartControlApp {
     getCharacterMedia() {
         const characterId = this.currentCharacter?.id;
         return window.CHARACTER_MEDIA?.[characterId] || [];
+    }
+    
+    /**
+     * 检查浏览器是否支持语音识别
+     */
+    checkSpeechRecognitionSupport() {
+        return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+    }
+    
+    /**
+     * 检查浏览器是否支持语音合成
+     */
+    checkSpeechSynthesisSupport() {
+        return 'speechSynthesis' in window;
+    }
+    
+    /**
+     * 开始自由模式语音识别
+     */
+    startFreeModeVoiceRecognition() {
+        if (!this.checkSpeechRecognitionSupport()) {
+            this.showToast('当前浏览器不支持语音识别，请使用Chrome或Edge浏览器', 'warning');
+            return;
+        }
+        
+        if (this.isFreeModeListening) return;
+        
+        try {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.freeModeRecognition = new SpeechRecognition();
+            
+            this.freeModeRecognition.lang = 'zh-CN';
+            this.freeModeRecognition.continuous = true;
+            this.freeModeRecognition.interimResults = true;
+            
+            this.freeModeRecognition.onstart = () => {
+                this.isFreeModeListening = true;
+                const voiceCommandBtn = document.getElementById('voiceCommandBtn');
+                if (voiceCommandBtn) {
+                    voiceCommandBtn.classList.add('listening');
+                }
+            };
+            
+            this.freeModeRecognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                let confidence = 0;
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    const transcript = result[0].transcript;
+                    const resultConfidence = result[0].confidence || 0;
+                    
+                    if (result.isFinal) {
+                        finalTranscript += transcript;
+                        confidence = Math.max(confidence, resultConfidence);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // 处理最终识别结果
+                if (finalTranscript) {
+                    const trimmedTranscript = finalTranscript.trim();
+                    // 对于"慢点"和"轻点"这类短词，提高识别要求
+                    const isShortCommand = trimmedTranscript.length <= 3;
+                    const minConfidence = isShortCommand ? 0.7 : 0.5;
+                    
+                    // 如果置信度足够高，或者不是短命令，则处理
+                    if (confidence >= minConfidence || !isShortCommand) {
+                        const commandId = this.classifyVoiceCommand(trimmedTranscript);
+                        if (commandId) {
+                            console.log(`[Voice] 识别到指令: ${commandId}, 文本: ${trimmedTranscript}, 置信度: ${confidence.toFixed(2)}`);
+                            this.handleFreeModeVoiceCommand(commandId);
+                        } else {
+                            console.log(`[Voice] 未识别到指令, 文本: ${trimmedTranscript}, 置信度: ${confidence.toFixed(2)}`);
+                        }
+                    } else {
+                        console.log(`[Voice] 置信度过低，忽略识别结果: ${trimmedTranscript}, 置信度: ${confidence.toFixed(2)}`);
+                    }
+                }
+            };
+            
+            this.freeModeRecognition.onerror = (event) => {
+                console.error('语音识别错误:', event.error);
+                if (event.error === 'no-speech') {
+                    // 无语音输入，继续监听
+                    return;
+                } else if (event.error === 'network') {
+                    this.showToast('网络错误，请检查网络连接', 'error');
+                } else {
+                    this.showToast('语音识别出错: ' + event.error, 'error');
+                }
+                this.stopFreeModeVoiceRecognition();
+            };
+            
+            this.freeModeRecognition.onend = () => {
+                // 如果仍在监听状态，自动重启
+                if (this.isFreeModeListening) {
+                    try {
+                        this.freeModeRecognition.start();
+                    } catch (e) {
+                        console.error('重启语音识别失败:', e);
+                        this.stopFreeModeVoiceRecognition();
+                    }
+                }
+            };
+            
+            this.freeModeRecognition.start();
+        } catch (error) {
+            console.error('初始化语音识别失败:', error);
+            this.showToast('无法启动语音识别，请检查麦克风权限', 'error');
+        }
+    }
+    
+    /**
+     * 停止自由模式语音识别
+     */
+    stopFreeModeVoiceRecognition() {
+        if (!this.isFreeModeListening) return;
+        
+        this.isFreeModeListening = false;
+        
+        if (this.freeModeRecognition) {
+            try {
+                this.freeModeRecognition.stop();
+            } catch (e) {
+                console.error('停止语音识别失败:', e);
+            }
+            this.freeModeRecognition = null;
+        }
+        
+        const voiceCommandBtn = document.getElementById('voiceCommandBtn');
+        if (voiceCommandBtn) {
+            voiceCommandBtn.classList.remove('listening');
+        }
+    }
+    
+    /**
+     * 分类语音指令
+     * 优化识别逻辑，提高"慢点"和"轻点"的识别准确性
+     * 采用精确匹配优先策略，减少误识别
+     */
+    classifyVoiceCommand(transcript) {
+        if (!transcript) return null;
+        
+        const text = transcript.toLowerCase().trim();
+        
+        // 策略1: 精确匹配优先（最高优先级）
+        const exactMatches = {
+            '继续': 'resume',
+            '接着': 'resume',
+            '暂停': 'pause',
+            '停止': 'pause',
+            '慢点': 'slower',
+            '慢一点': 'slower',
+            '轻点': 'gentle',
+            '轻一点': 'gentle',
+            '用力': 'tighter',
+            '快点': 'faster',
+            '快一点': 'faster'
+        };
+        
+        // 首先检查精确匹配
+        if (exactMatches[text]) {
+            return exactMatches[text];
+        }
+        
+        // 策略2: 完整短语匹配（高优先级）
+        // 继续相关
+        if (text === '继续' || text === '继续运行' || text.includes('继续') || text.includes('接着')) {
+            return 'resume';
+        }
+        
+        // 暂停相关
+        if (text === '暂停' || text === '停止' || text.includes('暂停') || text.includes('停止')) {
+            return 'pause';
+        }
+        
+        // 策略3: 明确的慢点相关词汇（提高优先级，避免被其他词误匹配）
+        const slowerKeywords = ['慢点', '慢一点', '放慢', '减速', '慢下来', '慢一些', '慢速'];
+        const hasSlowerKeyword = slowerKeywords.some(keyword => text === keyword || text.includes(keyword));
+        if (hasSlowerKeyword) {
+            // 排除包含"快"的情况
+            if (!text.includes('快') && !text.includes('加速') && !text.includes('加快')) {
+                return 'slower';
+            }
+        }
+        
+        // 策略4: 明确的轻点相关词汇（提高优先级，避免被其他词误匹配）
+        const gentleKeywords = ['轻点', '轻一点', '轻一些', '轻柔', '温柔'];
+        const hasGentleKeyword = gentleKeywords.some(keyword => text === keyword || text.includes(keyword));
+        if (hasGentleKeyword) {
+            // 排除包含"用力"、"紧"的情况
+            if (!text.includes('用力') && !text.includes('紧') && !text.includes('加强') && !text.includes('力度')) {
+                return 'gentle';
+            }
+        }
+        
+        // 策略5: 用力相关（在轻点之后检查，避免冲突）
+        const tighterKeywords = ['用力', '紧一点', '加强', '力度', '更紧'];
+        const hasTighterKeyword = tighterKeywords.some(keyword => text.includes(keyword));
+        if (hasTighterKeyword) {
+            return 'tighter';
+        }
+        
+        // 策略6: 快点相关（在慢点之后检查，避免冲突）
+        const fasterKeywords = ['快点', '快一点', '加速', '加快', '提速'];
+        const hasFasterKeyword = fasterKeywords.some(keyword => text.includes(keyword));
+        if (hasFasterKeyword) {
+            return 'faster';
+        }
+        
+        // 策略7: 单字匹配（最低优先级，仅作为后备）
+        // 只对单字进行匹配，避免误识别
+        if (text.length === 1) {
+            if (text === '慢') {
+                return 'slower';
+            } else if (text === '轻') {
+                return 'gentle';
+            } else if (text === '快') {
+                return 'faster';
+            } else if (text === '紧') {
+                return 'tighter';
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 处理自由模式语音指令
+     */
+    handleFreeModeVoiceCommand(commandId) {
+        console.log(`[handleFreeModeVoiceCommand] 处理指令: ${commandId}, 当前状态: ${this.freeModeState}`);
+        const command = window.VOICE_COMMANDS?.find(cmd => cmd.id === commandId);
+        if (!command) {
+            console.warn(`[handleFreeModeVoiceCommand] 未找到指令: ${commandId}`);
+            return;
+        }
+        
+        // 对于 pause 和 resume 指令，先处理状态变更，不发送额外的MQTT命令
+        // 因为这些指令已经在 pauseFreeMode() 或 startFreeMode() 中发送了命令
+        if (commandId === 'pause' || commandId === 'resume') {
+            console.log(`[handleFreeModeVoiceCommand] 处理暂停/继续指令: ${commandId}`);
+            // 这些指令在 adjustSliderByVoiceCommand 中处理状态变更
+            this.adjustSliderByVoiceCommand(commandId);
+            // 播放语音反馈
+            this.speakFreeModeFeedback(commandId);
+            return;
+        }
+        
+        // 对于其他指令（速度/力度调整），调整滑块值
+        this.adjustSliderByVoiceCommand(commandId);
+        
+        // 发送MQTT命令到设备
+        const mqttCommand = DeviceCommands.sendVoiceCommand(command.action, {
+            commandId: commandId,
+            timestamp: Date.now()
+        });
+        this.sendCommand(mqttCommand);
+        
+        // 播放语音反馈
+        this.speakFreeModeFeedback(commandId);
+    }
+    
+    /**
+     * 根据语音指令调整滑块值
+     */
+    adjustSliderByVoiceCommand(commandId) {
+        const ADJUSTMENT = 20; // 每次调整20%
+        
+        switch (commandId) {
+            case 'faster':
+                // 快点：增加伸缩速度和旋转速度
+                this.adjustSlider('strokeSpeedSlider', ADJUSTMENT);
+                this.adjustSlider('rotationSpeedSlider', ADJUSTMENT);
+                break;
+            case 'slower':
+                // 慢点：减少伸缩速度和旋转速度
+                this.adjustSlider('strokeSpeedSlider', -ADJUSTMENT);
+                this.adjustSlider('rotationSpeedSlider', -ADJUSTMENT);
+                break;
+            case 'tighter':
+                // 用力：增加夹吸力度
+                this.adjustSlider('suctionIntensitySlider', ADJUSTMENT);
+                break;
+            case 'gentle':
+                // 轻点：减少夹吸力度
+                this.adjustSlider('suctionIntensitySlider', -ADJUSTMENT);
+                break;
+            case 'pause':
+                // 暂停：调用暂停方法
+                if (this.freeModeState === 'running') {
+                    this.pauseFreeMode();
+                }
+                break;
+            case 'resume':
+                // 继续：如果处于暂停状态，则继续运行
+                console.log(`[Voice Resume] 当前状态: ${this.freeModeState}`);
+                if (this.freeModeState === 'paused') {
+                    console.log(`[Voice Resume] 调用 startFreeMode() 恢复运行`);
+                    this.startFreeMode();
+                } else if (this.freeModeState === 'stopped') {
+                    // 如果处于停止状态，也允许继续运行
+                    console.log(`[Voice Resume] 当前为停止状态，启动自由模式`);
+                    this.startFreeMode();
+                } else {
+                    console.log(`[Voice Resume] 当前状态不是暂停或停止，无法继续: ${this.freeModeState}`);
+                }
+                break;
+        }
+    }
+    
+    /**
+     * 调整滑块值
+     */
+    adjustSlider(sliderId, delta) {
+        const slider = document.getElementById(sliderId);
+        const valueElement = document.getElementById(sliderId.replace('Slider', 'Value'));
+        
+        if (!slider || !valueElement) return;
+        
+        const currentValue = parseInt(slider.value) || 0;
+        const newValue = Math.max(0, Math.min(100, currentValue + delta));
+        
+        // 更新滑块值
+        slider.value = newValue;
+        valueElement.textContent = `${newValue}%`;
+        
+        // 触发input事件，确保发送MQTT命令
+        const event = new Event('input', { bubbles: true });
+        slider.dispatchEvent(event);
+    }
+    
+    /**
+     * 请求麦克风权限
+     */
+    async requestMicrophonePermission() {
+        if (!this.checkSpeechRecognitionSupport()) {
+            return;
+        }
+        
+        try {
+            // 使用getUserMedia请求麦克风权限
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // 立即停止流，我们只需要权限
+            stream.getTracks().forEach(track => track.stop());
+            console.log('麦克风权限已获取');
+        } catch (error) {
+            console.warn('麦克风权限请求失败:', error);
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                this.showToast('需要麦克风权限才能使用语音指令功能', 'warning');
+            } else if (error.name === 'NotFoundError') {
+                this.showToast('未检测到麦克风设备', 'warning');
+            }
+        }
+    }
+    
+    /**
+     * 播放自由模式语音反馈
+     */
+    speakFreeModeFeedback(commandId) {
+        if (!this.checkSpeechSynthesisSupport()) {
+            return;
+        }
+        
+        const responses = window.VOICE_RESPONSES?.general?.[commandId];
+        if (!responses || responses.length === 0) {
+            return;
+        }
+        
+        // 停止当前播放
+        if (this.currentFreeModeUtterance) {
+            window.speechSynthesis.cancel();
+        }
+        
+        const feedbackText = responses[Math.floor(Math.random() * responses.length)];
+        
+        try {
+            const utterance = new SpeechSynthesisUtterance(feedbackText);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            // 选择中文女声
+            const voices = window.speechSynthesis.getVoices();
+            const chineseFemaleVoice = voices.find(voice => 
+                voice.lang.startsWith('zh') && voice.name.toLowerCase().includes('female')
+            ) || voices.find(voice => voice.lang.startsWith('zh-CN')) || null;
+            
+            if (chineseFemaleVoice) {
+                utterance.voice = chineseFemaleVoice;
+            }
+            
+            utterance.onstart = () => {
+                const broadcastIcon = document.getElementById('freeBroadcastIcon');
+                if (broadcastIcon) {
+                    broadcastIcon.classList.add('playing');
+                    broadcastIcon.textContent = '🔊';
+                }
+            };
+            
+            utterance.onend = () => {
+                const broadcastIcon = document.getElementById('freeBroadcastIcon');
+                if (broadcastIcon) {
+                    broadcastIcon.classList.remove('playing');
+                    broadcastIcon.textContent = '🔇';
+                }
+                this.currentFreeModeUtterance = null;
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('语音播放错误:', event.error);
+                const broadcastIcon = document.getElementById('freeBroadcastIcon');
+                if (broadcastIcon) {
+                    broadcastIcon.classList.remove('playing');
+                    broadcastIcon.textContent = '🔇';
+                }
+                this.currentFreeModeUtterance = null;
+            };
+            
+            this.currentFreeModeUtterance = utterance;
+            window.speechSynthesis.speak(utterance);
+        } catch (error) {
+            console.error('语音合成失败:', error);
+        }
+    }
+    
+    /**
+     * 播放AI消息的语音
+     */
+    playAIMessageVoice(message) {
+        if (!this.checkSpeechSynthesisSupport()) {
+            this.showToast('当前浏览器不支持语音播放', 'warning');
+            return;
+        }
+        
+        const voiceText = message.voiceText || message.text;
+        if (!voiceText) return;
+        
+        // 停止当前播放
+        if (this.currentAIModeUtterance) {
+            window.speechSynthesis.cancel();
+        }
+        
+        try {
+            const utterance = new SpeechSynthesisUtterance(voiceText);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            // 选择中文女声
+            const voices = window.speechSynthesis.getVoices();
+            const chineseFemaleVoice = voices.find(voice => 
+                voice.lang.startsWith('zh') && voice.name.toLowerCase().includes('female')
+            ) || voices.find(voice => voice.lang.startsWith('zh-CN')) || null;
+            
+            if (chineseFemaleVoice) {
+                utterance.voice = chineseFemaleVoice;
+            }
+            
+            // 更新播放按钮状态
+            const messageId = message.timestamp || Date.now();
+            const playBtn = document.querySelector(`.voice-play-btn[data-message-id="${messageId}"]`);
+            
+            utterance.onstart = () => {
+                if (playBtn) {
+                    playBtn.classList.add('playing');
+                    playBtn.textContent = '🔊';
+                }
+            };
+            
+            utterance.onend = () => {
+                if (playBtn) {
+                    playBtn.classList.remove('playing');
+                    playBtn.textContent = '🔊';
+                }
+                this.currentAIModeUtterance = null;
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('AI消息语音播放错误:', event.error);
+                if (playBtn) {
+                    playBtn.classList.remove('playing');
+                    playBtn.textContent = '🔊';
+                }
+                this.currentAIModeUtterance = null;
+            };
+            
+            this.currentAIModeUtterance = utterance;
+            window.speechSynthesis.speak(utterance);
+        } catch (error) {
+            console.error('AI消息语音合成失败:', error);
+        }
     }
 }
 
