@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户流程说明 - Smart Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --radius-lg: 0.75rem;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        /* 首页概览 */
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .home-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .home-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .home-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .home-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .home-card-desc {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        /* 流程图 */
+        .flow {
+            margin-top: 2rem;
+        }
+
+        .flow-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flow-title::before {
+            content: '';
+            width: 4px;
+            height: 1.5rem;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .flow-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .step {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.5rem;
+            min-width: 150px;
+            text-align: center;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .step:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .arrow {
+            font-size: 1.5rem;
+            color: var(--gray-600);
+            margin: 0 0.5rem;
+        }
+
+        .flow-description {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* 页面详情卡片 */
+        .page-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .detail-card {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+        }
+
+        .detail-card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-card-content {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        /* 底部导航说明 */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .nav-item {
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            border-color: var(--primary-color);
+            background: white;
+        }
+
+        .nav-item-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-item-desc {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .flow-steps {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>智能飞机杯控制原型 - 用户流程说明</h1>
+            <p>简要展示产品的主要使用流程和交互逻辑</p>
+        </div>
+
+        <!-- 首页概览 -->
+        <div class="section">
+            <h2 class="section-title">首页概览</h2>
+            <div class="home-grid">
+                <div class="home-card">
+                    <div class="home-card-icon">📶</div>
+                    <div class="home-card-title">设备连接</div>
+                    <div class="home-card-desc">配置设备WiFi连接</div>
+                </div>
+                <div class="home-card">
+                    <div class="home-card-icon">👥</div>
+                    <div class="home-card-title">AI模式配置</div>
+                    <div class="home-card-desc">浏览角色和场景</div>
+                </div>
+                <div class="home-card">
+                    <div class="home-card-icon">🚀</div>
+                    <div class="home-card-title">智能模式启动</div>
+                    <div class="home-card-desc">自由模式或AI模式</div>
+                </div>
+                <div class="home-card">
+                    <div class="home-card-icon">🧠</div>
+                    <div class="home-card-title">AI偏好学习</div>
+                    <div class="home-card-desc">个性化体验优化</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 流程1：设备WiFi配置 -->
+        <div class="section">
+            <h2 class="section-title">流程1：设备WiFi配置</h2>
+            <div class="flow">
+                <div class="flow-title">第一次使用设备需要进行WiFi配置</div>
+                <div class="flow-steps">
+                    <div class="step">
+                        <div class="step-icon">🏠</div>
+                        <div class="step-title">首页</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">📶</div>
+                        <div class="step-title">设备连接</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">📡</div>
+                        <div class="step-title">切换热点</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🌐</div>
+                        <div class="step-title">WiFi配置</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">✅</div>
+                        <div class="step-title">完成</div>
+                    </div>
+                </div>
+                <div class="flow-description">
+                    <strong>说明：</strong>用户首次使用需要将设备连接到WiFi网络。通过手机切换到设备热点后，选择家庭WiFi并输入密码完成配置。
+                </div>
+                <div class="page-details">
+                    <div class="detail-card">
+                        <div class="detail-card-title">步骤1-2：切换热点</div>
+                        <div class="detail-card-content">• 显示操作指引<br>• 连接状态检测<br>• 进度提示</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-card-title">步骤3：WiFi配置</div>
+                        <div class="detail-card-content">• 扫描可用网络<br>• 输入WiFi密码<br>• 配置进度显示</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-card-title">步骤4：配置完成</div>
+                        <div class="detail-card-content">• 连接状态确认<br>• 返回首页</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 流程2：AI角色场景浏览 -->
+        <div class="section">
+            <h2 class="section-title">流程2：AI角色场景浏览</h2>
+            <div class="flow">
+                <div class="flow-title">浏览和了解AI角色与场景</div>
+                <div class="flow-steps">
+                    <div class="step">
+                        <div class="step-icon">🏠</div>
+                        <div class="step-title">首页</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">👥</div>
+                        <div class="step-title">AI模式配置</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🎭</div>
+                        <div class="step-title">浏览角色</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🎬</div>
+                        <div class="step-title">查看场景</div>
+                    </div>
+                </div>
+                <div class="flow-description">
+                    <strong>说明：</strong>此流程用于浏览和了解AI模式的所有角色和场景，不进行实际操作。用户可以看到5个不同的AI角色，每个角色有5个不同的场景设定。
+                </div>
+                <div class="page-details">
+                    <div class="detail-card">
+                        <div class="detail-card-title">角色卡片</div>
+                        <div class="detail-card-content">• 5个AI角色<br>• 角色头像和名称<br>• 性格描述</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-card-title">场景卡片</div>
+                        <div class="detail-card-content">• 25个场景组合<br>• 场景图标和名称<br>• 持续时间显示</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 流程3：智能模式启动（自由模式） -->
+        <div class="section">
+            <h2 class="section-title">流程3：智能模式启动 - 自由模式</h2>
+            <div class="flow">
+                <div class="flow-title">用户完全自由控制设备</div>
+                <div class="flow-steps">
+                    <div class="step">
+                        <div class="step-icon">🏠</div>
+                        <div class="step-title">首页</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🚀</div>
+                        <div class="step-title">智能模式启动</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🎛️</div>
+                        <div class="step-title">选择自由模式</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🎮</div>
+                        <div class="step-title">控制面板</div>
+                    </div>
+                </div>
+                <div class="flow-description">
+                    <strong>说明：</strong>自由模式让用户完全手动控制设备。用户可以在控制面板上调整强度、速度、力度等参数，实时控制设备运行。
+                </div>
+                <div class="page-details">
+                    <div class="detail-card">
+                        <div class="detail-card-title">模式选择</div>
+                        <div class="detail-card-content">• 自由模式卡片<br>• AI模式卡片<br>• 功能对比</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-card-title">控制面板</div>
+                        <div class="detail-card-content">• 伸缩速度<br>• 旋转速度<br>• 夹吸力度</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 流程4：智能模式启动（AI模式） -->
+        <div class="section">
+            <h2 class="section-title">流程4：智能模式启动 - AI模式</h2>
+            <div class="flow">
+                <div class="flow-title">沉浸式AI互动体验</div>
+                <div class="flow-steps">
+                    <div class="step">
+                        <div class="step-icon">🏠</div>
+                        <div class="step-title">首页</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🚀</div>
+                        <div class="step-title">智能模式启动</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🤖</div>
+                        <div class="step-title">选择AI模式</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🎭</div>
+                        <div class="step-title">选择角色</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🎬</div>
+                        <div class="step-title">选择场景</div>
+                    </div>
+                    <span class="arrow">→</span>
+                    <div class="step">
+                        <div class="step-icon">🎮</div>
+                        <div class="step-title">AI运行</div>
+                    </div>
+                </div>
+                <div class="flow-description">
+                    <strong>说明：</strong>AI模式提供沉浸式互动体验。用户选择角色和场景后，AI会根据设定自动控制设备运行。用户可以通过语音指令与AI互动，改变体验节奏。
+                </div>
+                <div class="page-details">
+                    <div class="detail-card">
+                        <div class="detail-card-title">角色选择</div>
+                        <div class="detail-card-content">• 5个AI角色<br>• 卡片式选择<br>• 头像显示</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-card-title">场景选择</div>
+                        <div class="detail-card-content">• 25个场景<br>• 场景名称<br>• 持续时间</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-card-title">AI控制面板</div>
+                        <div class="detail-card-content">• 角色背景<br>• 进度显示<br>• 语音对话<br>• 停止按钮</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 流程5：底部导航 -->
+        <div class="section">
+            <h2 class="section-title">流程5：底部导航</h2>
+            <div class="flow">
+                <div class="flow-title">快速访问主要功能</div>
+                <div class="nav-grid">
+                    <div class="nav-item">
+                        <div class="nav-item-icon">🏠</div>
+                        <div class="nav-item-title">首页</div>
+                        <div class="nav-item-desc">返回主页，查看所有功能</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-item-icon">🎛️</div>
+                        <div class="nav-item-title">自由模式</div>
+                        <div class="nav-item-desc">快速进入自由模式控制</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-item-icon">🤖</div>
+                        <div class="nav-item-title">AI模式</div>
+                        <div class="nav-item-desc">快速进入AI模式选择</div>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-item-icon">🧠</div>
+                        <div class="nav-item-title">AI学习</div>
+                        <div class="nav-item-desc">查看AI学习状态</div>
+                    </div>
+                </div>
+                <div class="flow-description">
+                    <strong>说明：</strong>底部导航栏始终显示在页面底部，允许用户快速切换主要功能，提供便捷的导航体验。
+                </div>
+            </div>
+        </div>
+
+        <!-- 补充说明 -->
+        <div class="section">
+            <h2 class="section-title">关键特性</h2>
+            <div class="page-details">
+                <div class="detail-card">
+                    <div class="detail-card-title">移动端优先</div>
+                    <div class="detail-card-content">专为手机浏览器优化，适配各种移动设备屏幕</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-card-title">实时通信</div>
+                    <div class="detail-card-content">基于MQTT协议，实现设备实时控制和状态反馈</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-card-title">AI互动</div>
+                    <div class="detail-card-content">语音指令、角色扮演、场景沉浸式体验</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-card-title">简洁设计</div>
+                    <div class="detail-card-content">现代化卡片式UI，清晰直观的操作流程</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
