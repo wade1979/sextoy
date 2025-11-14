@@ -178,11 +178,41 @@ class SmartControlApp {
 
     // Mode Selection Listeners
     setupModeListeners() {
+        // Mode selection tabs
+        document.querySelectorAll('.mode-selection-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.currentTarget.dataset.tab;
+                this.switchModeSelectionTab(tabName);
+            });
+        });
+
+        // Mode cards (free/AI mode selection)
         document.querySelectorAll('.mode-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const mode = e.currentTarget.dataset.mode;
                 this.selectMode(mode);
             });
+        });
+    }
+
+    // Switch Mode Selection Tab
+    switchModeSelectionTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.mode-selection-tab').forEach(tab => {
+            if (tab.dataset.tab === tabName) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+
+        // Update tab panels
+        document.querySelectorAll('.mode-selection-panel').forEach(panel => {
+            if (panel.dataset.panel === tabName) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
         });
     }
 
