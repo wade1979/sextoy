@@ -84,7 +84,6 @@
                     <div class="quick-connect-form">
                         <input type="text" id="deviceTokenInput" class="quick-connect-input" placeholder="例如：2hwazpsh95yi" autocomplete="off">
                         <button class="quick-connect-btn" id="deviceTokenSubmit">连接设备</button>
-                        <button class="quick-connect-link" id="deviceDisconnectBtn" type="button">断开</button>
                     </div>
                     <div class="quick-connect-status" id="quickConnectStatus">未连接</div>
                 </div>
@@ -547,16 +546,16 @@
                 <div class="screen-header">
                     <button class="back-btn" data-back="modeSelection">← 返回</button>
                     <h1 class="screen-title">自由模式</h1>
-                    <div class="mode-status">
-                        <div class="status-indicator running"></div>
-                        <span class="status-text">运行中</span>
+                    <div class="mode-status" data-mode="free">
+                        <div class="status-indicator offline"></div>
+                        <span class="status-text">已停止</span>
                     </div>
                 </div>
 
                 <!-- Waveform Display -->
                 <div class="waveform-section">
-                    <div class="waveform-container" id="waveformContainer">
-                        <!-- 波形动画将在这里显示 -->
+                    <div class="waveform-container">
+                        <canvas id="waveformCanvas"></canvas>
                     </div>
                 </div>
 
@@ -594,13 +593,14 @@
                 <!-- 语音交互区域 - 语音指令和语音播报 -->
                 <div class="voice-section">
                     <div class="voice-controls">
-                        <button class="voice-btn" id="voiceCommandBtn">
-                            <div class="voice-icon">🎤</div>
-                            <span>语音指令</span>
+                        <button class="icon-control-btn" id="voiceCommandBtn" title="语音指令：快点/慢点/用力/轻点/暂停/继续" aria-label="语音指令：快点/慢点/用力/轻点/暂停/继续">
+                            <span class="control-icon">🎤</span>
                         </button>
-                        <button class="voice-btn" id="stopBtn">
-                            <div class="voice-icon">▶️</div>
-                            <span>启动</span>
+                        <button class="icon-control-btn" id="freePlayPauseBtn" title="开始" aria-label="开始">
+                            <span class="control-icon" id="freePlayPauseIcon">▶️</span>
+                        </button>
+                        <button class="icon-control-btn" id="freeStopBtn" title="停止" aria-label="停止" disabled>
+                            <span class="control-icon">⏹️</span>
                         </button>
                         <!-- 语音播报状态图标 - 显示当前是否有语音播报 -->
                         <div class="voice-status">
@@ -620,9 +620,9 @@
                 <div class="screen-header">
                     <button class="back-btn" data-back="modeSelection">← 返回</button>
                     <h1 class="screen-title">AI模式</h1>
-                    <div class="mode-status">
-                        <div class="status-indicator running"></div>
-                        <span class="status-text">运行中</span>
+                    <div class="mode-status" data-mode="ai">
+                        <div class="status-indicator offline"></div>
+                        <span class="status-text">已停止</span>
                     </div>
                 </div>
 
@@ -644,17 +644,14 @@
                     </div>
 
                     <div class="ai-controls-panel">
-                        <button class="ai-control-btn" id="aiVoiceCommandBtn">
-                            <div class="control-icon">🎤</div>
-                            <span>语音对话</span>
+                        <button class="icon-control-btn dark" id="aiChatBtn" title="互动" aria-label="互动">
+                            <span class="control-icon">💬</span>
                         </button>
-                        <button class="ai-control-btn" id="aiChatBtn">
-                            <div class="control-icon">💬</div>
-                            <span>互动</span>
+                        <button class="icon-control-btn dark" id="aiPlayPauseBtn" title="开始" aria-label="开始">
+                            <span class="control-icon" id="aiPlayPauseIcon">▶️</span>
                         </button>
-                        <button class="ai-control-btn" id="aiStopBtn">
-                            <div class="control-icon">⏹️</div>
-                            <span>停止</span>
+                        <button class="icon-control-btn dark" id="aiStopBtn" title="停止" aria-label="停止" disabled>
+                            <span class="control-icon">⏹️</span>
                         </button>
                         <!-- 角色语音播报状态图标 -->
                         <div class="voice-status">

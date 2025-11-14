@@ -78,8 +78,8 @@ const CHARACTERS = {
         occupation: 'nurse',
         kinks: ['gentle', 'romantic'],
         voice: 'voice1',
-        backgroundImage: 'resource/background_nurse.png',
-        videoPath: 'resource/role_nurse.mov',
+        backgroundImage: 'resource/ai/nurse/background.png',
+        videoPath: 'resource/ai/nurse/video.mov',
         voiceStyle: '温柔女声',
         color: '#e91e63'
     },
@@ -95,8 +95,8 @@ const CHARACTERS = {
         occupation: 'model',
         kinks: ['bdsm', 'daddy', 'tease'],
         voice: 'voice3',
-        backgroundImage: 'resource/background_queen.png',
-        videoPath: 'resource/role_queen.mov',
+        backgroundImage: 'resource/ai/queen/background.png',
+        videoPath: 'resource/ai/queen/video.mov',
         voiceStyle: '成熟女声',
         color: '#9c27b0'
     },
@@ -112,8 +112,8 @@ const CHARACTERS = {
         occupation: 'student',
         kinks: ['romantic', 'gentle'],
         voice: 'voice4',
-        backgroundImage: 'resource/background_girlfriend.png',
-        videoPath: 'resource/role_girlfriend.mov',
+        backgroundImage: 'resource/ai/girlfriend/background.png',
+        videoPath: 'resource/ai/girlfriend/video.mov',
         voiceStyle: '甜美女声',
         color: '#ff9800'
     },
@@ -129,8 +129,8 @@ const CHARACTERS = {
         occupation: 'coach',
         kinks: ['rough', 'tease'],
         voice: 'voice3',
-        backgroundImage: 'resource/background_coach.png',
-        videoPath: 'resource/role_coach.mov',
+        backgroundImage: 'resource/ai/coach/background.png',
+        videoPath: 'resource/ai/coach/video.mov',
         voiceStyle: '活力女声',
         color: '#4caf50'
     },
@@ -146,8 +146,8 @@ const CHARACTERS = {
         occupation: 'office',
         kinks: ['romantic', 'roleplay'],
         voice: 'voice7',
-        backgroundImage: 'resource/background_ol.png',
-        videoPath: 'resource/role_ol.mov',
+        backgroundImage: 'resource/ai/ol/background.png',
+        videoPath: 'resource/ai/ol/video.mov',
         voiceStyle: '知性女声',
         color: '#2196f3'
     }
@@ -225,17 +225,24 @@ const VOICE_COMMANDS = [
     },
     {
         id: 'tighter',
-        text: '紧一点',
+        text: '用力',
         englishText: 'Tighter',
-        icon: '🤏',
+        icon: '💪',
         action: 'increase_intensity'
     },
     {
-        id: 'skip',
-        text: '跳过',
-        englishText: 'Skip',
-        icon: '⏭️',
-        action: 'skip_phase'
+        id: 'gentle',
+        text: '轻点',
+        englishText: 'Gentle',
+        icon: '🌸',
+        action: 'decrease_intensity'
+    },
+    {
+        id: 'resume',
+        text: '继续',
+        englishText: 'Resume',
+        icon: '▶️',
+        action: 'resume_phase'
     },
     {
         id: 'pause',
@@ -252,8 +259,9 @@ const VOICE_RESPONSES = {
     general: {
         faster: ['好的，我会加快节奏', '马上加速', '节奏提升中'],
         slower: ['好的，我会放慢节奏', '马上减速', '节奏放缓中'],
-        tighter: ['好的，我会增加力度', '马上调整', '力度提升中'],
-        skip: ['好的，跳过当前阶段', '进入下一阶段', '阶段切换中'],
+        tighter: ['收到', '好的', '好的，我会用力'],
+        gentle: ['收到', '好的', '好的，我会轻点'],
+        resume: ['收到', '好的', '继续运行'],
         pause: ['好的，暂停运行', '设备暂停', '暂停中']
     },
     
@@ -342,7 +350,8 @@ const QUICK_MESSAGE_TEMPLATES = {
     common: [
         { id: 'hello', text: '你好呀 👋', category: 'greeting' },
         { id: 'miss', text: '想你了 💕', category: 'emotion' },
-        { id: 'see_you', text: '想你的模样 👀', category: 'media' },
+        { id: 'see_you_photo', text: '想你的模样 👀', category: 'media' },
+        { id: 'see_you_video', text: '给我个表情 😉', category: 'media' },
         { id: 'exciting', text: '给我来点刺激的 🔥', category: 'request' },
         { id: 'gentle', text: '温柔一点 🌸', category: 'request' },
         { id: 'faster', text: '快一点 ⚡', category: 'control' },
@@ -415,48 +424,51 @@ const QUICK_MESSAGE_TEMPLATES = {
 // 角色媒体资源配置
 const CHARACTER_MEDIA = {
     nurse: [
-        { type: 'image', url: 'resource/background_nurse.png' },
-        { type: 'video', url: 'resource/role_nurse.mov' }
+        { type: 'image', url: 'resource/ai/nurse/background.png' },
+        { type: 'video', url: 'resource/ai/nurse/video.mov' }
     ],
     queen: [
-        { type: 'image', url: 'resource/background_queen.png' },
-        { type: 'video', url: 'resource/role_queen.mov' }
+        { type: 'image', url: 'resource/ai/queen/background.png' },
+        { type: 'video', url: 'resource/ai/queen/video.mov' }
     ],
     girlfriend: [
-        { type: 'image', url: 'resource/background_girlfriend.png' },
-        { type: 'video', url: 'resource/role_girlfriend.mov' }
+        { type: 'image', url: 'resource/ai/girlfriend/background.png' },
+        { type: 'video', url: 'resource/ai/girlfriend/video.mov' }
     ],
     coach: [
-        { type: 'image', url: 'resource/background_coach.png' },
-        { type: 'video', url: 'resource/role_coach.mov' }
+        { type: 'image', url: 'resource/ai/coach/background.png' },
+        { type: 'video', url: 'resource/ai/coach/video.mov' }
     ],
     ol: [
-        { type: 'image', url: 'resource/background_ol.png' },
-        { type: 'video', url: 'resource/role_ol.mov' }
+        { type: 'image', url: 'resource/ai/ol/background.png' },
+        { type: 'video', url: 'resource/ai/ol/video.mov' }
     ],
     moena: [
-        { type: 'image', url: 'resource/realperson/moena.png' },
-        { type: 'video', url: 'resource/realperson/Moena.mov' }
+        { type: 'image', url: 'resource/idol/moena/image.png' },
+        { type: 'video', url: 'resource/idol/moena/video.mov' }
     ],
     umisea: [
-        { type: 'image', url: 'resource/realperson/unisea.png' },
-        { type: 'video', url: 'resource/realperson/unisea.mov' }
+        { type: 'image', url: 'resource/idol/umisea/image.png' },
+        { type: 'video', url: 'resource/idol/umisea/video.mov' }
     ],
     tojonatsu: [
-        { type: 'image', url: 'resource/realperson/tojonatsu.png' },
-        { type: 'video', url: 'resource/realperson/tojonatsu.mp4' }
+        { type: 'image', url: 'resource/idol/tojonatsu/image.png' },
+        { type: 'video', url: 'resource/idol/tojonatsu/video.mp4' },
+        { type: 'video', url: 'resource/idol/tojonatsu/video_ai1.mp4' },
+        { type: 'video', url: 'resource/idol/tojonatsu/video_ai2.mp4' },
+        { type: 'video', url: 'resource/idol/tojonatsu/video_ai3.mp4' }
     ],
     ruruka: [
-        { type: 'image', url: 'resource/realperson/ruruka.png' },
-        { type: 'video', url: 'resource/realperson/ruruka.mp4' }
+        { type: 'image', url: 'resource/idol/ruruka/image.png' },
+        { type: 'video', url: 'resource/idol/ruruka/video.mp4' }
     ],
     tubasa: [
-        { type: 'image', url: 'resource/realperson/tubasa.png' },
-        { type: 'video', url: 'resource/realperson/tubasa.mp4' }
+        { type: 'image', url: 'resource/idol/tubasa/image.png' },
+        { type: 'video', url: 'resource/idol/tubasa/video.mp4' }
     ],
     koroko: [
-        { type: 'image', url: 'resource/realperson/koroko.png' },
-        { type: 'video', url: 'resource/realperson/koroko.mp4' }
+        { type: 'image', url: 'resource/idol/koroko/image.png' },
+        { type: 'video', url: 'resource/idol/koroko/video.mp4' }
     ]
 };
 

@@ -2462,11 +2462,156 @@ body {
 }
 
 /* Mode Selection Styles */
+/* Mode Selection Tabs */
+.mode-selection-tabs {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 2px solid var(--gray-200);
+    margin-top: var(--space-4);
+}
+
+.mode-selection-tab {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    bottom: -2px;
+}
+
+.mode-selection-tab:hover {
+    color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.mode-selection-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.mode-selection-tab-content {
+    position: relative;
+    min-height: 400px;
+}
+
+.mode-selection-panel {
+    display: none;
+    padding: var(--space-6);
+}
+
+.mode-selection-panel.active {
+    display: block;
+}
+
+/* Companion Content */
+.companion-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-8) 0;
+    text-align: center;
+}
+
+.companion-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-4);
+}
+
+.companion-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+}
+
+.companion-description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-8);
+    line-height: 1.6;
+}
+
+.companion-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+}
+
+.companion-feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-6);
+    background: var(--bg-primary);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-normal);
+}
+
+.companion-feature:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.companion-feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-4);
+}
+
+.companion-feature-text h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.companion-feature-text p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.companion-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-6);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    margin-top: var(--space-6);
+}
+
+.companion-status-label {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.companion-status-value {
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .mode-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--space-6);
-    margin-top: var(--space-8);
+    margin-top: var(--space-4);
 }
 
 .mode-card {
@@ -3133,6 +3278,36 @@ body {
     .scenario-grid,
     .mode-cards {
         grid-template-columns: 1fr;
+    }
+    
+    .mode-selection-tabs {
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
+    }
+    
+    .mode-selection-tab {
+        flex: 1;
+        min-width: calc(50% - var(--space-1));
+        padding: var(--space-2) var(--space-4);
+        font-size: 0.875rem;
+    }
+    
+    .companion-features {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+    
+    .companion-icon {
+        font-size: 3rem;
+    }
+    
+    .companion-title {
+        font-size: 1.5rem;
+    }
+    
+    .companion-description {
+        font-size: 1rem;
     }
     
     .edit-info-grid {
