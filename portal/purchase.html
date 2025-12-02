@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase - AI Pleasure</title>
+    <meta name="description" content="Purchase your AI-powered personal wellness device. Secure checkout with Stripe.">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="index.html" class="navbar-logo">AI Pleasure</a>
+            
+            <ul class="navbar-menu">
+                <li class="navbar-menu-item"><a href="index.html" class="navbar-link">Home</a></li>
+                <li class="navbar-menu-item"><a href="product.html" class="navbar-link">Product</a></li>
+                <li class="navbar-menu-item"><a href="how-it-works.html" class="navbar-link">How It Works</a></li>
+                <li class="navbar-menu-item"><a href="faq.html" class="navbar-link">FAQ</a></li>
+                <li class="navbar-menu-item"><a href="brand-story.html" class="navbar-link">Brand Story</a></li>
+                <li class="navbar-menu-item"><a href="policies.html" class="navbar-link">Policies</a></li>
+                <li class="navbar-menu-item"><a href="feedback.html" class="navbar-link">Feedback</a></li>
+            </ul>
+            
+            <a href="purchase.html" class="navbar-cta">Buy Now</a>
+            
+            <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        
+        <div class="mobile-menu">
+            <ul class="mobile-menu-list">
+                <li class="mobile-menu-item"><a href="index.html" class="mobile-menu-link">Home</a></li>
+                <li class="mobile-menu-item"><a href="product.html" class="mobile-menu-link">Product</a></li>
+                <li class="mobile-menu-item"><a href="how-it-works.html" class="mobile-menu-link">How It Works</a></li>
+                <li class="mobile-menu-item"><a href="faq.html" class="mobile-menu-link">FAQ</a></li>
+                <li class="mobile-menu-item"><a href="brand-story.html" class="mobile-menu-link">Brand Story</a></li>
+                <li class="mobile-menu-item"><a href="policies.html" class="mobile-menu-link">Policies</a></li>
+                <li class="mobile-menu-item"><a href="feedback.html" class="mobile-menu-link">Feedback</a></li>
+                <li class="mobile-menu-item"><a href="purchase.html" class="mobile-menu-cta">Buy Now</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="navbar-spacer"></div>
+
+    <!-- Purchase Section -->
+    <section class="section">
+        <div class="container">
+            <div class="purchase-summary">
+                <div>
+                    <div class="product-image-placeholder purchase-image">
+                        Product Image
+                    </div>
+                </div>
+                
+                <div class="purchase-info">
+                    <h1 class="heading-2">AI Pleasure Device</h1>
+                    <p class="text-body mb-lg">
+                        Experience the next generation of personal wellness technology with AI-powered rhythm engine and adaptive learning system.
+                    </p>
+                    
+                    <div class="price">$299.00</div>
+                    
+                    <ul class="feature-list" style="margin-bottom: var(--space-lg);">
+                        <li class="feature-item" style="border: none; padding: var(--space-xs) 0;">
+                            ✓ Pulse AI Rhythm Engine with 15+ rhythm patterns
+                        </li>
+                        <li class="feature-item" style="border: none; padding: var(--space-xs) 0;">
+                            ✓ Adaptive intensity and preference learning
+                        </li>
+                        <li class="feature-item" style="border: none; padding: var(--space-xs) 0;">
+                            ✓ 5 AI characters with 25+ scenarios
+                        </li>
+                        <li class="feature-item" style="border: none; padding: var(--space-xs) 0;">
+                            ✓ OTA rhythm pack updates
+                        </li>
+                        <li class="feature-item" style="border: none; padding: var(--space-xs) 0;">
+                            ✓ WiFi connectivity and mobile app
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="stripe-checkout-area">
+                <h3 class="heading-3 mb-md">Secure Checkout</h3>
+                
+                <!-- Stripe Checkout Integration Placeholder -->
+                <!-- 
+                TO IMPLEMENT:
+                1. Replace this placeholder with actual Stripe Checkout
+                2. You can use Stripe Checkout Session API or Stripe Payment Element
+                
+                OPTION 1: Stripe Checkout Session (Recommended for simplicity)
+                Create a checkout session on your server and redirect to Stripe hosted page:
+                
+                <script src="https://js.stripe.com/v3/"></script>
+                <script>
+                    // Replace with your Stripe publishable key
+                    const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY');
+                    
+                    // Replace with your server endpoint that creates checkout session
+                    fetch('/create-checkout-session', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            productId: 'ai_pleasure_device',
+                            priceId: 'price_YOUR_PRICE_ID', // From Stripe Dashboard
+                            quantity: 1
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(session => {
+                        return stripe.redirectToCheckout({ sessionId: session.id });
+                    });
+                </script>
+                
+                OPTION 2: Stripe Payment Element (Embedded checkout)
+                More complex but gives you full control over the UI.
+                
+                For shipping and tax calculation:
+                - Shipping: Add as line item in checkout session or use Stripe Shipping Rates API
+                - Tax: Use Stripe Tax API for automatic calculation or add manually
+                - Payment methods: Configure in Stripe Dashboard (Credit Cards, PayPal via Link, etc.)
+                
+                Example server-side code (Node.js/Python/etc.):
+                
+                const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+                
+                const session = await stripe.checkout.sessions.create({
+                    payment_method_types: ['card', 'link'], // Add 'paypal' if available in your region
+                    line_items: [{
+                        price_data: {
+                            currency: 'usd',
+                            product_data: {
+                                name: 'AI Pleasure Device',
+                                description: 'AI-powered personal wellness device',
+                                images: ['https://yourdomain.com/product-image.jpg'],
+                            },
+                            unit_amount: 29900, // $299.00 in cents
+                        },
+                        quantity: 1,
+                    }],
+                    shipping_options: [{
+                        shipping_rate_data: {
+                            type: 'fixed_amount',
+                            fixed_amount: {
+                                amount: 0, // Free shipping
+                                currency: 'usd',
+                            },
+                            display_name: 'Free Shipping',
+                        },
+                    }],
+                    mode: 'payment',
+                    success_url: 'https://yourdomain.com/purchase-success?session_id={CHECKOUT_SESSION_ID}',
+                    cancel_url: 'https://yourdomain.com/purchase.html',
+                    automatic_tax: { enabled: true }, // Enable automatic tax calculation
+                    customer_email: 'customer@example.com', // Optional: pre-fill email
+                });
+                
+                return { id: session.id };
+                
+                Order confirmation email:
+                - Stripe automatically sends order confirmation emails
+                - Customize email templates in Stripe Dashboard > Settings > Emails
+                - Or use Stripe webhooks to send custom confirmation emails
+                -->
+                
+                <div style="text-align: center; padding: var(--space-4xl); background: var(--color-bg-tertiary); border-radius: var(--radius-lg); margin-bottom: var(--space-lg);">
+                    <p class="text-body" style="margin-bottom: var(--space-md);">
+                        <strong>Checkout Integration Placeholder</strong>
+                    </p>
+                    <p class="text-small" style="margin-bottom: var(--space-lg);">
+                        Replace this section with Stripe Checkout integration.<br>
+                        See code comments above for implementation instructions.
+                    </p>
+                    <button class="btn btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        Proceed to Checkout
+                    </button>
+                </div>
+                
+                <div style="font-size: var(--font-size-xs); color: var(--color-text-secondary); text-align: center;">
+                    <p>✓ Secure payment processing by Stripe</p>
+                    <p>✓ Free shipping included</p>
+                    <p>✓ Taxes calculated automatically</p>
+                    <p>✓ Order confirmation email sent automatically</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h3>Product</h3>
+                    <ul class="footer-link-list">
+                        <li><a href="product.html" class="footer-link">Overview</a></li>
+                        <li><a href="how-it-works.html" class="footer-link">How It Works</a></li>
+                        <li><a href="brand-story.html" class="footer-link">Technology</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Support</h3>
+                    <ul class="footer-link-list">
+                        <li><a href="faq.html" class="footer-link">FAQ</a></li>
+                        <li><a href="how-it-works.html" class="footer-link">Documentation</a></li>
+                        <li><a href="feedback.html" class="footer-link">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul class="footer-link-list">
+                        <li><a href="policies.html#terms" class="footer-link">Terms of Use</a></li>
+                        <li><a href="policies.html#privacy" class="footer-link">Privacy Policy</a></li>
+                        <li><a href="policies.html#shipping" class="footer-link">Shipping & Returns</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2024 AI Pleasure. All rights reserved.</p>
+                <p class="footer-age-restriction">18+ Only. Must be of legal age to purchase.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+                    <a href="#" class="social-link" aria-label="Instagram">📷</a>
+                    <a href="#" class="social-link" aria-label="Facebook">👥</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      # 挂载项目文件（只读）
+      - /var/www/sextoy-prototype:/var/www/sextoy-prototype:ro
+      # 挂载Nginx配置
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # 挂载SSL证书（如果有）
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # 日志目录
+      - ./nginx/logs:/var/log/nginx
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+

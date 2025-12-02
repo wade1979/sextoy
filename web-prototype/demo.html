@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Control - AI Prototype Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f8fafc !important;
+            color: #1e293b !important;
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+            color: white !important;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .demo-header h1 {
+            color: white !important;
+        }
+        
+        .demo-header p {
+            color: white !important;
+        }
+        
+        .demo-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            background: transparent;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background: white !important;
+            color: #1e293b !important;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .demo-content h1, .demo-content h2, .demo-content h3, .demo-content h4 {
+            color: #1e293b !important;
+        }
+        
+        .demo-content p {
+            color: #64748b !important;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .demo-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .demo-btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+        
+        .demo-btn-primary:hover {
+            background: #5855eb;
+            transform: translateY(-2px);
+        }
+        
+        .demo-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .demo-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .character-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .character-preview {
+            background: white !important;
+            color: #1e293b !important;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        
+        .scenario-preview {
+            background: white !important;
+            color: #1e293b !important;
+        }
+        
+        .flow-diagram {
+            background: white !important;
+            color: #1e293b !important;
+        }
+        
+        .character-preview:hover {
+            border-color: #6366f1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .character-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #6b7280;
+        }
+        
+        .scenario-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .scenario-preview {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        
+        .scenario-preview:hover {
+            border-color: #6366f1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .scenario-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .flow-diagram {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+        
+        .flow-step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .flow-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #6366f1;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .flow-content {
+            flex: 1;
+        }
+        
+        .flow-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .flow-desc {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>Smart Control AI Prototype</h1>
+        <p>智能飞机杯控制原型 - AI角色场景系统</p>
+    </div>
+
+    <div class="demo-content">
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🏠</div>
+                <h3>卡片式首页</h3>
+                <p>直观的功能入口设计，三个主要功能模块：设备连接、AI模式配置、智能模式启动。每个功能都有清晰的图标和描述。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📶</div>
+                <h3>完整WiFi配置流程</h3>
+                <p>4步式SoftAP配置流程：说明引导 → 连接检测 → WiFi配置 → 结果确认。模拟真实的设备配置体验。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>AI角色场景系统</h3>
+                <p>5个角色 × 5个场景 = 25种组合体验。每个角色都有独特的个性和背景，每个场景都有不同的体验模式。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎛️</div>
+                <h3>双模式控制</h3>
+                <p>自由模式：手动控制所有参数；AI模式：智能角色陪伴。两种模式满足不同用户需求。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎤</div>
+                <h3>语音交互系统</h3>
+                <p>模拟语音指令和语音播报。支持5种语音指令，角色化的语音响应，增强沉浸感。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>波形可视化</h3>
+                <p>CSS动画实现的实时波形效果，根据控制参数动态变化。提供直观的视觉反馈。</p>
+            </div>
+        </div>
+
+        <div class="character-showcase">
+            <h2 style="grid-column: 1 / -1; text-align: center; margin-bottom: 1rem;">AI角色展示</h2>
+            <div class="character-preview">
+                <div class="character-avatar">👩‍⚕️</div>
+                <h4>护理师</h4>
+                <p>温柔专业，细心照护</p>
+            </div>
+            <div class="character-preview">
+                <div class="character-avatar">👑</div>
+                <h4>御姐</h4>
+                <p>高贵优雅，主导节奏</p>
+            </div>
+            <div class="character-preview">
+                <div class="character-avatar">💕</div>
+                <h4>女友</h4>
+                <p>甜美可爱，亲密温暖</p>
+            </div>
+            <div class="character-preview">
+                <div class="character-avatar">🏃‍♀️</div>
+                <h4>教练</h4>
+                <p>专业严格，活力激励</p>
+            </div>
+            <div class="character-preview">
+                <div class="character-avatar">👩‍💼</div>
+                <h4>白领女性</h4>
+                <p>知性优雅，独立理性</p>
+            </div>
+        </div>
+
+        <div class="scenario-showcase">
+            <h2 style="grid-column: 1 / -1; text-align: center; margin-bottom: 1rem;">体验场景展示</h2>
+            <div class="scenario-preview">
+                <div class="scenario-icon">🌸</div>
+                <h4>私密唤醒</h4>
+                <p>轻柔的唤醒体验</p>
+            </div>
+            <div class="scenario-preview">
+                <div class="scenario-icon">🧘</div>
+                <h4>休息放松</h4>
+                <p>舒缓的放松模式</p>
+            </div>
+            <div class="scenario-preview">
+                <div class="scenario-icon">🏃</div>
+                <h4>节奏训练</h4>
+                <p>专业的节奏训练</p>
+            </div>
+            <div class="scenario-preview">
+                <div class="scenario-icon">💕</div>
+                <h4>温柔照护</h4>
+                <p>贴心的照护模式</p>
+            </div>
+            <div class="scenario-preview">
+                <div class="scenario-icon">🔥</div>
+                <h4>主控调戏</h4>
+                <p>充满挑战的主导模式</p>
+            </div>
+        </div>
+
+        <div class="flow-diagram">
+            <h2 style="text-align: center; margin-bottom: 2rem;">完整交互流程</h2>
+            <div class="flow-step">
+                <div class="flow-number">1</div>
+                <div class="flow-content">
+                    <div class="flow-title">首页选择功能</div>
+                    <div class="flow-desc">从三个主要功能入口中选择：设备连接、AI模式配置、智能模式启动</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-number">2</div>
+                <div class="flow-content">
+                    <div class="flow-title">WiFi设备配置</div>
+                    <div class="flow-desc">4步式配置流程：说明引导 → 连接检测 → WiFi配置 → 结果确认</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-number">3</div>
+                <div class="flow-content">
+                    <div class="flow-title">AI角色场景选择</div>
+                    <div class="flow-desc">选择喜欢的角色和场景组合，共25种不同体验</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-number">4</div>
+                <div class="flow-content">
+                    <div class="flow-title">模式选择</div>
+                    <div class="flow-desc">选择自由模式（手动控制）或AI模式（智能陪伴）</div>
+                </div>
+            </div>
+            <div class="flow-step">
+                <div class="flow-number">5</div>
+                <div class="flow-content">
+                    <div class="flow-title">开始体验</div>
+                    <div class="flow-desc">享受个性化的智能控制体验，支持语音交互和实时反馈</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-buttons">
+            <a href="index.html" class="demo-btn demo-btn-primary">启动原型</a>
+            <a href="https://github.com" class="demo-btn demo-btn-secondary">查看源码</a>
+        </div>
+
+        <div class="feature-card">
+            <h3>技术特色</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin: 0.5rem 0;">✅ 完整的SoftAP WiFi配置流程</li>
+                <li style="margin: 0.5rem 0;">✅ 5个AI角色 × 5个场景 = 25种组合</li>
+                <li style="margin: 0.5rem 0;">✅ 自由模式和AI模式双控制面板</li>
+                <li style="margin: 0.5rem 0;">✅ 模拟语音指令和角色化语音播报</li>
+                <li style="margin: 0.5rem 0;">✅ CSS动画实现的实时波形效果</li>
+                <li style="margin: 0.5rem 0;">✅ 角色背景图片的半透明效果</li>
+                <li style="margin: 0.5rem 0;">✅ 完整的MQTT通信协议支持</li>
+                <li style="margin: 0.5rem 0;">✅ 响应式设计，完美适配移动端</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <h3>设计理念</h3>
+            <p>这个AI控制原型专注于用户体验的完整性和沉浸感。通过卡片式的直观设计、完整的配置流程、丰富的角色场景系统，以及智能的语音交互，为用户提供了一个既专业又易用的智能设备控制体验。</p>
+            
+            <h4 style="margin-top: 1.5rem;">核心价值</h4>
+            <p>• <strong>完整性</strong>：覆盖从设备配置到体验享受的完整流程<br>
+            • <strong>个性化</strong>：25种角色场景组合满足不同偏好<br>
+            • <strong>智能化</strong>：AI模式提供智能陪伴和自适应体验<br>
+            • <strong>易用性</strong>：直观的界面设计和流畅的交互体验</p>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive elements to the demo
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add hover effects to feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-4px)';
+                    card.style.boxShadow = '0 10px 15px -3px rgb(0 0 0 / 0.1)';
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0)';
+                    card.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1)';
+                });
+            });
+
+            // Add click animation to buttons
+            const buttons = document.querySelectorAll('.demo-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    btn.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        btn.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
+
+            // Add character preview interactions
+            const characterPreviews = document.querySelectorAll('.character-preview');
+            characterPreviews.forEach(preview => {
+                preview.addEventListener('click', () => {
+                    preview.style.borderColor = '#6366f1';
+                    preview.style.background = '#e0e7ff';
+                    
+                    setTimeout(() => {
+                        preview.style.borderColor = '#e5e7eb';
+                        preview.style.background = 'white';
+                    }, 1000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
