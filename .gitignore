@@ -60,3 +60,4 @@ release/*.zip
 # Legacy prototypes (if too large)
 # prototypes_legacy.01/
 
+official/
