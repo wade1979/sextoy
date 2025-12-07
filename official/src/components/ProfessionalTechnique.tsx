@@ -40,28 +40,14 @@ export default function ProfessionalTechnique() {
                 fill
                 className="object-cover"
               />
-              <div className="absolute inset-0 overflow-hidden">
-                <Image
-                  src={images.rectangle19}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  style={{ transform: 'scale(2.67)' }}
-                />
-              </div>
-              <Image
-                src={images.rectangle20}
-                alt=""
-                fill
-                className="object-cover"
-              />
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-[28px] bg-gradient-to-t from-black/80 to-transparent">
+            <div className="absolute inset-0 bg-[rgba(0,0,0,0.4)]" />
+            <div className="absolute bottom-0 left-0 right-0 p-[28px] bg-[rgba(0,0,0,0.72)]">
               <h3 className="text-[24px] leading-[36px] text-white font-normal mb-3">
-                Al Rhythm Engine
+                Pulling willows upside down
               </h3>
-              <p className="text-[18px] leading-[24px] text-white/60">
-                15 professional rhythm techniques simulated from real human expertise. Each pattern adapts in real-time to your preferences.
+              <p className="text-[18px] leading-[24px] text-[rgba(255,255,255,0.6)]">
+                Fingers encircle, gently and effectively promoting
               </p>
             </div>
             <div className="absolute left-1/2 top-[173px] -translate-x-1/2 w-[96px] h-[96px]">
@@ -78,24 +64,19 @@ export default function ProfessionalTechnique() {
           <div className="relative h-[400px] md:h-[562px] group">
             <div className="absolute inset-0">
               <Image
-                src={images.rectangle21}
-                alt=""
-                fill
-                className="object-cover"
-              />
-              <Image
-                src={images.rectangle22}
+                src={images.rectangle18}
                 alt=""
                 fill
                 className="object-cover"
               />
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-[28px] bg-gradient-to-t from-black/80 to-transparent">
+            <div className="absolute inset-0 bg-[rgba(0,0,0,0.4)]" />
+            <div className="absolute bottom-0 left-0 right-0 p-[28px] bg-[rgba(0,0,0,0.72)]">
               <h3 className="text-[24px] leading-[36px] text-white font-normal mb-3">
-                Al Rhythm Engine
+                High Mountains and Flowing Water
               </h3>
-              <p className="text-[18px] leading-[24px] text-white/60">
-                15 professional rhythm techniques simulated from real human expertise. Each pattern adapts in real-time to your preferences.
+              <p className="text-[18px] leading-[24px] text-[rgba(255,255,255,0.6)]">
+                Gentle caresses gradually increase pleasure.
               </p>
             </div>
             <div className="absolute left-1/2 top-[173px] -translate-x-1/2 w-[96px] h-[96px]">

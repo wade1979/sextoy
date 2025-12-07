@@ -26,38 +26,49 @@ export default function WhyChooseUs() {
               </div>
               <div className="flex-1">
                 <h4 className="text-[24px] leading-normal text-white font-normal mb-3 tracking-[-0.48px]">
-                  15+ adaptive rhythm pattern
+                  Adaptive Rhythm Engine — 10+ Dynamic Patterns
                 </h4>
-                <p className="text-[16px] leading-[24px] text-white/80 font-extralight">
-                  Over 15 smart grooves that instantly react to your dynamics, speed, and phrasing. Real-time fills, swing, density, and ghost notes adjust automatically—like playing with a pro drummer who reads your mind. From light brush to heavy rock, Bossa to Trap, always perfectly humanized.
-                </p>
+                <div className="text-[16px] leading-[24px] text-white/80">
+                  <p className="mb-0">Our adaptive rhythm engine is trained on real human motion through advanced imitation learning.</p>
+                  <p>With 15 dynamic modes, it interprets your pace and responds with fluid, lifelike motion — constantly adjusting to your intensity, desire, and rhythm in real time.</p>
+                </div>
               </div>
             </div>
 
             {/* Other Features */}
-            {[
-              'AI preference learning system',
-              '25+ unique experiences',
-              'AI voice interaction',
-              'Personalized growth system',
-            ].map((feature, index) => (
-              <div key={index} className="flex gap-[24px] items-center">
-                <div className="bg-[#d9d9d9]/40 w-[2px] h-[50px] flex-shrink-0" />
-                <p className="text-[24px] leading-normal text-white font-normal tracking-[-0.48px]">
-                  {feature}
-                </p>
-              </div>
-            ))}
+            <div className="flex gap-[24px] items-center">
+              <div className="bg-[#d9d9d9]/40 w-[2px] h-[50px] flex-shrink-0" />
+              <p className="text-[24px] leading-normal text-white font-normal tracking-[-0.48px]">
+                Personalized Growth System — AI Preference Learning
+              </p>
+            </div>
+            <div className="flex gap-[24px] items-center">
+              <div className="bg-[#d9d9d9]/40 w-[2px] h-[50px] flex-shrink-0" />
+              <p className="text-[24px] leading-normal text-white font-normal tracking-[-0.48px]">
+                AI Companion — 25+ Experiences(AI Characters, Realistic Digital Clones)
+              </p>
+            </div>
           </div>
 
           {/* Right: Product Image */}
-          <div className="flex-1 w-full lg:w-auto h-[400px] md:h-[600px] lg:h-[825px] relative">
-            <Image
-              src={images.rectangle4}
-              alt="AI-Powered Product"
-              fill
-              className="object-cover rounded-lg"
-            />
+          <div className="flex-1 w-full lg:w-auto h-[400px] md:h-[600px] lg:h-[761px] relative">
+            <div className="absolute inset-0">
+              <Image
+                src={images.rectangle3}
+                alt="AI-Powered Product"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 overflow-hidden">
+                <Image
+                  src={images.rectangle27}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  style={{ transform: 'scale(1.24)' }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -33,8 +33,8 @@ export default function CTA() {
           <br />
           chose us at the same time.
         </h2>
-        <button className="bg-white/95 backdrop-blur-[11.4px] border border-white text-[#1e1e1e] text-[18px] font-medium px-[18px] py-[12px] rounded-[8px] hover:bg-white transition-colors">
-          Buy Now
+        <button className="bg-white border-2 border-white/12 text-[#181d27] text-[18px] font-semibold px-[24px] py-[12px] rounded-[8px] hover:bg-white/90 transition-colors shadow-sm">
+          Learn More
         </button>
       </div>
     </section>

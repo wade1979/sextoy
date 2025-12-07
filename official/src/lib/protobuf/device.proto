@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message DeviceFrame {
+  double t = 1;           // 时间戳
+  double stroke = 2;      // 0-1 归一化冲程值
+  double rotation = 3;    // -1 to 1 归一化旋转值
+  double intensity = 4;   // 0-1 归一化强度值
+  string mode = 5;        // 模式字符串
+}
+

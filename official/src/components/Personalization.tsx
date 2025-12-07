@@ -2,12 +2,12 @@ import Image from 'next/image';
 import { images } from '@/lib/images';
 
 const avatars = [
-  { src: images.avatar, bg: '#E5DDCE' },
-  { src: images.avatar1, bg: '#CFCBDC' },
-  { src: images.avatar2, bg: '#E9DCBB' },
-  { src: images.avatar3, bg: '#C7D1B0' },
-  { src: images.avatar4, bg: '#DDC0CE' },
-  { src: images.avatar5, bg: '#E5DDCE' },
+  { src: images.rectangle21, bg: '#E5DDCE' },
+  { src: images.rectangle23, bg: '#CFCBDC' },
+  { src: images.rectangle24, bg: '#E9DCBB' },
+  { src: images.avatar, bg: '#C7D1B0' },
+  { src: images.avatar1, bg: '#DDC0CE' },
+  { src: images.avatar2, bg: '#E5DDCE' },
 ];
 
 export default function Personalization() {
@@ -34,13 +34,13 @@ export default function Personalization() {
           </div>
 
           {/* Description */}
-          <p className="text-xl md:text-3xl lg:text-[48px] leading-normal text-white text-center max-w-[1400px] font-normal px-4">
-            Advanced machine learning algorithms analyze your usage patterns and preferences. The device becomes more personalized with each use, creating a truly unique experience.
+          <p className="text-xl md:text-3xl lg:text-[44px] leading-normal text-white text-center max-w-[1400px] font-medium px-4">
+            Our adaptive AI learns your rhythm, preferences, and unique patterns — becoming more in tune with your body every time you use it. The more you explore, the more personal it becomes
           </p>
 
           {/* Title */}
           <h3 className="text-xl md:text-2xl lg:text-[32px] leading-normal text-white text-center font-extralight tracking-[-0.64px]">
-            Personalized customization
+            Learns what you like
           </h3>
         </div>
       </div>
