@@ -1,5 +1,6 @@
 FROM alibaba-cloud-linux-3-registry.cn-hangzhou.cr.aliyuncs.com/alinux3/node:20.16
 
+
 # 关键：切换到 root 用户，否则 npm 无法写 package-lock.json
 USER root
 
@@ -28,4 +29,5 @@ USER node
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+
+CMD ["npm", "start", "--", "-H", "0.0.0.0"]

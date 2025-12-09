@@ -6,13 +6,22 @@ export default function AdaptiveLearning() {
       <div className="max-w-[1920px] mx-auto px-4 md:px-[120px]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: Images */}
-          <div className="relative">
+          <div className="relative space-y-4">
             <div className="relative w-full rounded-lg overflow-hidden bg-white/5">
               <Image
                 src="/assets/images/adaptive-learning-vw8ggg4bkdrma0ctxjpsav6q68.jpg"
                 alt="Adaptive AI Learning"
                 width={600}
                 height={400}
+                className="w-full h-auto object-contain"
+              />
+            </div>
+            <div className="relative w-full rounded-lg overflow-hidden bg-white/5">
+              <Image
+                src="/assets/images/adaptive-learning-76ptjs8w9hrme0ctxjp8j75njg.jpg"
+                alt="Adaptive AI Learning"
+                width={600}
+                height={300}
                 className="w-full h-auto object-contain"
               />
             </div>

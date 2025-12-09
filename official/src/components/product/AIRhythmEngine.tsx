@@ -32,7 +32,7 @@ export default function AIRhythmEngine() {
           </div>
         </div>
 
-        {/* Three-Stage Transformation */}
+        {/* Two-Stage Transformation */}
         <div className="max-w-[1400px] mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
             {/* Stage 1: Real Techniques */}
@@ -56,7 +56,7 @@ export default function AIRhythmEngine() {
               </div>
             </div>
 
-            {/* Arrow 1 */}
+            {/* Arrow */}
             <div className="hidden md:flex items-center justify-center flex-shrink-0">
               <svg
                 width="40"
@@ -93,47 +93,6 @@ export default function AIRhythmEngine() {
                 </h3>
                 <p className="text-sm md:text-base text-white/60">
                   Digitized patterns
-                </p>
-              </div>
-            </div>
-
-            {/* Arrow 2 */}
-            <div className="hidden md:flex items-center justify-center flex-shrink-0">
-              <svg
-                width="40"
-                height="40"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-white/60"
-              >
-                <path
-                  d="M15 10L25 20L15 30"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-
-            {/* Stage 3: Rhythm Curves */}
-            <div className="flex flex-col items-center gap-4 flex-1 max-w-[400px]">
-              <div className="relative w-full rounded-lg overflow-hidden bg-white/5 border border-white/10">
-                <Image
-                  src="/assets/images/technique-rhythm.jpg"
-                  alt="Rhythm Curves"
-                  width={400}
-                  height={400}
-                  className="w-full h-auto object-contain"
-                />
-              </div>
-              <div className="text-center">
-                <h3 className="text-lg md:text-xl text-white font-medium mb-2">
-                  Rhythm Curves
-                </h3>
-                <p className="text-sm md:text-base text-white/60">
-                  Personalized motion patterns
                 </p>
               </div>
             </div>
