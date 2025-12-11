@@ -70,7 +70,7 @@ export default function Footer() {
               <h4 className="text-[20px] text-white/60 font-medium mb-4">Support</h4>
               <ul className="space-y-3">
                 <li>
-                  <a href="#" className="text-[20px] text-white font-normal hover:text-white/80 transition-colors">
+                  <a href="/faq" className="text-[20px] text-white font-normal hover:text-white/80 transition-colors">
                     FAQ
                   </a>
                 </li>

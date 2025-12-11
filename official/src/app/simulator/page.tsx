@@ -16,7 +16,7 @@ export default function SimulatorRoute() {
       <Navbar />
       <div className="pt-[60px] md:pt-[155px]">
         <Suspense fallback={<SimulatorPageFallback />}>
-          <SimulatorPage />
+        <SimulatorPage />
         </Suspense>
       </div>
     </main>

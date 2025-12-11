@@ -149,9 +149,22 @@ export default function SimulatorPage() {
 
           {/* 3D 可视化 - 右侧 */}
           <div className="bg-white/5 rounded-lg border border-white/10 p-6 md:p-8 flex flex-col">
-            <h2 className="text-xl md:text-2xl text-white font-medium mb-4">
-              3D Device Visualization
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl md:text-2xl text-white font-medium">
+                3D Device Visualization 
+              </h2>
+              <button
+                onClick={isRunning ? stop : start}
+                disabled={false}
+                className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition-all whitespace-nowrap shadow-lg ${
+                  isRunning
+                    ? 'bg-red-500/40 border-2 border-red-400 text-white hover:bg-red-500/50'
+                    : 'bg-blue-500/30 border-2 border-blue-400/60 text-white hover:bg-blue-500/40'
+                }`}
+              >
+                auto run
+              </button>
+            </div>
             
             {/* 3D场景和图表并排显示 */}
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">

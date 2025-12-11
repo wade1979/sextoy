@@ -45,7 +45,7 @@ export default function Navbar() {
               Ai Partner
             </a>
             <a
-              href="#"
+              href="/faq"
               className="px-[7px] py-[5px] rounded-[9px] text-white/50 text-sm md:text-[18px] font-semibold hover:bg-white/10 hover:text-white transition-colors"
             >
               FAQ
